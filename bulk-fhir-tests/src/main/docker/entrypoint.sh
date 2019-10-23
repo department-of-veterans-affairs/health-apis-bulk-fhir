@@ -2,6 +2,9 @@
 
 set -o pipefail
 
+[ -z "$BASE_DIR" ] && BASE_DIR="/bulk-fhir-tests"
+cd $BASE_DIR
+
 #
 # Usage Information
 #
@@ -85,8 +88,7 @@ validateProvidedVariables() {
 setupForTests() {
   validateProvidedVariables
 
-  SYSTEM_PROPERTIES="-Dintegration.bulkfhir.url=$K8S_LOAD_BALANCER \
-    -Dintegration.bulkfhir.api-path=$BULK_FHIR_API_PATH"
+  SYSTEM_PROPERTIES="-Dintegration.bulkfhir.url=$K8S_LOAD_BALANCER -Dintegration.bulkfhir.api-path=$BULK_FHIR_API_PATH"
 }
 
 # Runs Smoke Tests
