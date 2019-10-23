@@ -10,6 +10,16 @@
   <artifactId>bulk-fhir-tests</artifactId>
   <version>1.0.0-SNAPSHOT</version>
   <packaging>jar</packaging>
+  <properties>
+    <groups>gov.va.api.health.sentinel.categories.Local</groups>
+  </properties>
+  <dependencies>
+    <dependency>
+      <groupId>gov.va.api.health</groupId>
+      <artifactId>sentinel</artifactId>
+      <version>${project.parent.version}</version>
+    </dependency>
+  </dependencies>
   <profiles>
     <profile>
       <id>release</id>
