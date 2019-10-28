@@ -11,10 +11,16 @@
   <version>1.0.4-SNAPSHOT</version>
   <packaging>jar</packaging>
   <properties>
+    <mssql-jdbc.version>7.4.1.jre12</mssql-jdbc.version>
     <!-- TODO: SET COVERAGE TO 95% -->
     <jacoco.coverage>0.01</jacoco.coverage>
   </properties>
   <dependencies>
+    <dependency>
+      <groupId>com.microsoft.sqlserver</groupId>
+      <artifactId>mssql-jdbc</artifactId>
+      <version>${mssql-jdbc.version}</version>
+    </dependency>
     <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-beans</artifactId>

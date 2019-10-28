@@ -4,7 +4,7 @@ databaseChangeLog:
       author: shanktopus
       changes:
         - sql:
-            dbms: h2
+            dbms: h2, mssql
             sql: create schema app;
   - changeSet:
       id: 2
