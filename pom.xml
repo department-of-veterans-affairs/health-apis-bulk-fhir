@@ -7,7 +7,7 @@
     <version>4.0.0</version>
   </parent>
   <artifactId>bulk-fhir-parent</artifactId>
-  <version>1.0.4</version>
+  <version>1.0.5-SNAPSHOT</version>
   <packaging>pom</packaging>
   <modules>
     <module>the-incredible-bulk</module>
