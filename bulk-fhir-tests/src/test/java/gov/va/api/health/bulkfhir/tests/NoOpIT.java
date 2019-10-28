@@ -13,8 +13,8 @@ public class NoOpIT {
   @Test
   @Category({Local.class, ProdBulkFhir.class, LabBulkFhir.class})
   public void noOperation() {
-    String url = System.getProperty("integration.bulkfhir.url", "Not-Found");
-    String apiPath = System.getProperty("integration.bulkfhir.api-path", "Not-Found");
+    String url = TestClients.bulkFhir().service().url();
+    String apiPath = TestClients.bulkFhir().service().apiPath();
     log.info("Integration Tests Running: {}/{}", url, apiPath);
   }
 }
