@@ -17,7 +17,6 @@ public class SystemDefinitions {
     String url = "https://dev-api.va.gov";
     return SystemDefinition.builder()
         .bulkFhir(serviceDefinition("incredible-bulk", url, 443, "/"))
-        .dataQuery(serviceDefinition("argonaut", url, 443, "/services/fhir/v0/dstu2/"))
         .build();
   }
 
@@ -26,7 +25,6 @@ public class SystemDefinitions {
     String url = "http://localhost";
     return SystemDefinition.builder()
         .bulkFhir(serviceDefinition("incredible-bulk", url, 8091, "/"))
-        .dataQuery(serviceDefinition("argonaut", url, 8090, "/not-available/"))
         .build();
   }
 
@@ -35,7 +33,6 @@ public class SystemDefinitions {
     String url = "https://api.va.gov";
     return SystemDefinition.builder()
         .bulkFhir(serviceDefinition("incredible-bulk", url, 443, "/"))
-        .dataQuery(serviceDefinition("argonaut", url, 443, "/services/fhir/v0/dstu2/"))
         .build();
   }
 
@@ -44,7 +41,6 @@ public class SystemDefinitions {
     String url = "https://blue.qa.lighthouse.va.gov";
     return SystemDefinition.builder()
         .bulkFhir(serviceDefinition("incredible-bulk", url, 443, "/"))
-        .dataQuery(serviceDefinition("argonaut", url, 443, "/not-available/"))
         .build();
   }
 
@@ -62,7 +58,6 @@ public class SystemDefinitions {
     String url = "https://blue.staging.lighthouse.va.gov";
     return SystemDefinition.builder()
         .bulkFhir(serviceDefinition("incredible-bulk", url, 443, "/"))
-        .dataQuery(serviceDefinition("argonaut", url, 443, "/not-available/"))
         .build();
   }
 
@@ -71,7 +66,6 @@ public class SystemDefinitions {
     String url = "https://blue.staging-lab.lighthouse.va.gov";
     return SystemDefinition.builder()
         .bulkFhir(serviceDefinition("incredible-bulk", url, 443, "/"))
-        .dataQuery(serviceDefinition("argonaut", url, 443, "/not-available/"))
         .build();
   }
 

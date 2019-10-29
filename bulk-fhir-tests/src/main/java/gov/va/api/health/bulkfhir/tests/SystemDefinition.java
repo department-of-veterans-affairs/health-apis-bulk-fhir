@@ -10,6 +10,4 @@ import lombok.Value;
 public final class SystemDefinition {
 
   @NonNull ServiceDefinition bulkFhir;
-
-  @NonNull ServiceDefinition dataQuery;
 }
