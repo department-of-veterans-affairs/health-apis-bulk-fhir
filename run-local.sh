@@ -208,7 +208,7 @@ do
     --debug) set -x;;
     -h|--help) usage "halp! what this do?";;
     --h2) EMBEDDED_H2_ENABLED=true;;
-    -p|--profile)SPRING_PROFILES_ACTIVE="$2";;
+    -p|--profile) SPRING_PROFILES_ACTIVE="$2";;
     --) shift;break;;
   esac
   SIMPLE_OPTION=${1##*-}
