@@ -1,0 +1,74 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1
+      author: shanktopus
+      changes:
+        - sql:
+            dbms: h2, mssql
+            sql: create schema app;
+  - changeSet:
+      id: 2
+      author: shanktopus
+      changes:
+        - createTable:
+            tableName: Status
+            schemaName: app
+            columns:
+              - column:
+                  name: id
+                  type: int
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              # Publication information
+              - column:
+                  name: publicationName
+                  type: varchar(36)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: publicationEpoch
+                  type: bigint
+                  constraints:
+                    nullable: false
+              - column:
+                  name: recordsPerFile
+                  type: int
+                  constraints:
+                    nullable: false
+              # File information
+              # status is derived:
+              #  NOT_STARTED -> build start = 0 and build end = 0
+              #  IN_PROGRESS -> build start != 0 and build end = 0
+              #  COMPLETE -> build start != 0 and build end != 0
+              - column:
+                  name: fileName
+                  type: varchar(50)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: firstRecord
+                  type: int
+                  constraints:
+                    nullable: false
+              - column:
+                  name: lastRecord
+                  type: int
+                  constraints:
+                    nullable: false
+              - column:
+                  name: buildStartEpoch
+                  type: bigint
+                  constraints:
+                    nullable: true
+              - column:
+                  name: buildCompleteEpoch
+                  type: bigint
+                  constraints:
+                    nullable: true
+              - column:
+                  name: buildProcessorId
+                  type: varchar(36)
+                  constraints:
+                    nullable: true

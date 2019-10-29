@@ -43,7 +43,7 @@ startApp() {
   local jar=$(find target -maxdepth 1 -name "$app-*.jar" | grep -v -E 'tests|library')
   [ -z "$jar" ] && echo "Cannot find $app application jar" && exit 1
   local options="-Dapp.name=$app"
-  if [ "$LOCAL" == true -a "${APP_H2[$app]}" == "true" ]
+  if [ "$EMBEDDED_H2_ENABLED" == true -a "${APP_H2[$app]}" == "true" ]
   then
     local pathSeparator=':'
     [ "$(uname)" != "Darwin" ] && [ "$(uname)" != "Linux" ] && echo "Add support for your operating system" && exit 1
@@ -51,9 +51,10 @@ startApp() {
     options+=" -cp $(readlink -f $jar)${pathSeparator}$(readlink -f ~/.m2/repository/com/h2database/h2/${H2_VERSION}/h2-${H2_VERSION}.jar)"
     options+=" -Dspring.jpa.generate-ddl=true"
     options+=" -Dspring.jpa.hibernate.ddl-auto=create-drop"
-    options+=" -Dspring.jpa.hibernate.globally_quoted_identifiers=true"
+    options+=" -Dspring.jpa.hibernate.globally_quoted_identifiers=false"
     options+=" -Dspring.datasource.driver-class-name=org.h2.Driver"
-    options+=" -Dspring.datasource.url=jdbc:h2:mem:whatever"
+    options+=" -Dspring.datasource.url=jdbc:h2:mem:local"
+    options+=" -Dspring.h2.console.enabled=true"
     java ${options} org.springframework.boot.loader.PropertiesLauncher &
   else
     java ${options} -jar $jar &
@@ -192,12 +193,12 @@ REPO=$(cd $(dirname $0) && pwd)
 . $REPO/.run-local.conf
 
 SPRING_PROFILES_ACTIVE=dev
-LOCAL=false
+EMBEDDED_H2_ENABLED=false
 H2_VERSION=1.4.197
 
 ARGS=$(getopt -n $(basename ${0}) \
-    -l "debug,help,local,$(echo "${!LONG_OPTION_TO_APP[@]}" | sort | tr ' ' ,)" \
-    -o "hl$(echo "${!SHORT_OPTION_TO_APP[@]}" | sort | tr -d ' ')" \
+    -l "debug,help,h2,profile:,$(echo "${!LONG_OPTION_TO_APP[@]}" | sort | tr ' ' ,)" \
+    -o "hp:$(echo "${!SHORT_OPTION_TO_APP[@]}" | sort | tr -d ' ')" \
     -- "$@")
 [ $? != 0 ] && usage
 eval set -- "$ARGS"
@@ -206,7 +207,8 @@ do
   case "$1" in
     --debug) set -x;;
     -h|--help) usage "halp! what this do?";;
-    -l|--local) LOCAL=true;;
+    --h2) EMBEDDED_H2_ENABLED=true;;
+    -p|--profile) SPRING_PROFILES_ACTIVE="$2";;
     --) shift;break;;
   esac
   SIMPLE_OPTION=${1##*-}
