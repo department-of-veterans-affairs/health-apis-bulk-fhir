@@ -73,12 +73,15 @@ doTest() {
   # Run It
   java -cp "$(pwd)/*" $SYSTEM_PROPERTIES org.junit.runner.JUnitCore $filter $tests \
     | grep -vE "^	at ($noise)"
+
+  # Exit on failure otherwise let other actions run.
+  [ $? != 0 ] && exit 1
 }
 
 # Goes through all required variables and checks for their existence
 validateProvidedVariables() {
   # Check out required deployment variables and data query specific variables.
-  for param in "K8S_LOAD_BALANCER" "BULK_FHIR_API_PATH" "BULK_SMOKE_TEST_CATEGORY" \
+  for param in "SENTINEL_ENV K8S_LOAD_BALANCER" "BULK_FHIR_API_PATH" "BULK_SMOKE_TEST_CATEGORY" \
     "BULK_REGRESSION_TEST_CATEGORY" "BULK_TOKEN"; do
     [ -z ${!param} ] && usage "Variable $param must be specified."
   done
@@ -89,7 +92,8 @@ validateProvidedVariables() {
 setupForTests() {
   validateProvidedVariables
 
-  SYSTEM_PROPERTIES="-Dintegration.bulkfhir.url=$K8S_LOAD_BALANCER \
+  SYSTEM_PROPERTIES="-Dsentinel=$SENTINEL_ENV \
+    -Dintegration.bulkfhir.url=$K8S_LOAD_BALANCER \
     -Dintegration.bulkfhir.api-path=$BULK_FHIR_API_PATH \
     -Dbulk-token=$BULK_TOKEN"
 }
@@ -97,7 +101,6 @@ setupForTests() {
 # Runs Smoke Tests
 doSmokeTest() {
   setupForTests
-  echo "Doin the smoke tests!!!"
 
   INCLUDE_CATEGORY="$BULK_SMOKE_TEST_CATEGORY"
   doTest
@@ -106,7 +109,6 @@ doSmokeTest() {
 # Runs the Regression Test Suite
 doRegressionTest() {
   setupForTests
-  echo "Doin the regression tests!!!"
 
   INCLUDE_CATEGORY="$BULK_REGRESSION_TEST_CATEGORY"
   doTest
