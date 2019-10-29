@@ -78,7 +78,8 @@ doTest() {
 # Goes through all required variables and checks for their existence
 validateProvidedVariables() {
   # Check out required deployment variables and data query specific variables.
-  for param in "K8S_LOAD_BALANCER" "BULK_FHIR_API_PATH" "BULK_SMOKE_TEST_CATEGORY" "BULK_REGRESSION_TEST_CATEGORY"; do
+  for param in "K8S_LOAD_BALANCER" "BULK_FHIR_API_PATH" "BULK_SMOKE_TEST_CATEGORY" \
+    "BULK_REGRESSION_TEST_CATEGORY" "BULK_TOKEN"; do
     [ -z ${!param} ] && usage "Variable $param must be specified."
   done
 }
@@ -88,7 +89,9 @@ validateProvidedVariables() {
 setupForTests() {
   validateProvidedVariables
 
-  SYSTEM_PROPERTIES="-Dintegration.bulkfhir.url=$K8S_LOAD_BALANCER -Dintegration.bulkfhir.api-path=$BULK_FHIR_API_PATH"
+  SYSTEM_PROPERTIES="-Dintegration.bulkfhir.url=$K8S_LOAD_BALANCER \
+    -Dintegration.bulkfhir.api-path=$BULK_FHIR_API_PATH \
+    -Dbulk-token=$BULK_TOKEN"
 }
 
 # Runs Smoke Tests
