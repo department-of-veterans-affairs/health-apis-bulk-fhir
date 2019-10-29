@@ -3,7 +3,6 @@ package gov.va.api.health.bulkfhir.tests;
 import gov.va.api.health.sentinel.Environment;
 import gov.va.api.health.sentinel.SentinelProperties;
 import gov.va.api.health.sentinel.ServiceDefinition;
-import java.util.Optional;
 import lombok.experimental.UtilityClass;
 
 /**
@@ -17,8 +16,8 @@ public class SystemDefinitions {
   private static SystemDefinition lab() {
     String url = "https://dev-api.va.gov";
     return SystemDefinition.builder()
-        .bulkFhir(serviceDefinition("incredible-bulk", url, 443, null, "/"))
-        .dataQuery(serviceDefinition("argonaut", url, 443, null, "/services/fhir/v0/dstu2/"))
+        .bulkFhir(serviceDefinition("incredible-bulk", url, 443, "/"))
+        .dataQuery(serviceDefinition("argonaut", url, 443, "/services/fhir/v0/dstu2/"))
         .build();
   }
 
@@ -26,8 +25,8 @@ public class SystemDefinitions {
   private static SystemDefinition local() {
     String url = "http://localhost";
     return SystemDefinition.builder()
-        .bulkFhir(serviceDefinition("incredible-bulk", url, 8091, null, "/"))
-        .dataQuery(serviceDefinition("argonaut", url, 8090, null, "/not-available/"))
+        .bulkFhir(serviceDefinition("incredible-bulk", url, 8091, "/"))
+        .dataQuery(serviceDefinition("argonaut", url, 8090, "/not-available/"))
         .build();
   }
 
@@ -35,8 +34,8 @@ public class SystemDefinitions {
   private static SystemDefinition production() {
     String url = "https://api.va.gov";
     return SystemDefinition.builder()
-        .bulkFhir(serviceDefinition("incredible-bulk", url, 443, null, "/"))
-        .dataQuery(serviceDefinition("argonaut", url, 443, null, "/services/fhir/v0/dstu2/"))
+        .bulkFhir(serviceDefinition("incredible-bulk", url, 443, "/"))
+        .dataQuery(serviceDefinition("argonaut", url, 443, "/services/fhir/v0/dstu2/"))
         .build();
   }
 
@@ -44,17 +43,16 @@ public class SystemDefinitions {
   private static SystemDefinition qa() {
     String url = "https://blue.qa.lighthouse.va.gov";
     return SystemDefinition.builder()
-        .bulkFhir(serviceDefinition("incredible-bulk", url, 443, null, "/"))
-        .dataQuery(serviceDefinition("argonaut", url, 443, null, "/not-available/"))
+        .bulkFhir(serviceDefinition("incredible-bulk", url, 443, "/"))
+        .dataQuery(serviceDefinition("argonaut", url, 443, "/not-available/"))
         .build();
   }
 
   private static ServiceDefinition serviceDefinition(
-      String name, String url, int port, String accessToken, String apiPath) {
+      String name, String url, int port, String apiPath) {
     return ServiceDefinition.builder()
         .url(SentinelProperties.optionUrl(name, url))
         .port(port)
-        .accessToken(() -> Optional.ofNullable(accessToken))
         .apiPath(SentinelProperties.optionApiPath(name, apiPath))
         .build();
   }
@@ -63,8 +61,8 @@ public class SystemDefinitions {
   private static SystemDefinition staging() {
     String url = "https://blue.staging.lighthouse.va.gov";
     return SystemDefinition.builder()
-        .bulkFhir(serviceDefinition("incredible-bulk", url, 443, null, "/"))
-        .dataQuery(serviceDefinition("argonaut", url, 443, null, "/not-available/"))
+        .bulkFhir(serviceDefinition("incredible-bulk", url, 443, "/"))
+        .dataQuery(serviceDefinition("argonaut", url, 443, "/not-available/"))
         .build();
   }
 
@@ -72,8 +70,8 @@ public class SystemDefinitions {
   private static SystemDefinition stagingLab() {
     String url = "https://blue.staging-lab.lighthouse.va.gov";
     return SystemDefinition.builder()
-        .bulkFhir(serviceDefinition("incredible-bulk", url, 443, null, "/"))
-        .dataQuery(serviceDefinition("argonaut", url, 443, null, "/not-available/"))
+        .bulkFhir(serviceDefinition("incredible-bulk", url, 443, "/"))
+        .dataQuery(serviceDefinition("argonaut", url, 443, "/not-available/"))
         .build();
   }
 
