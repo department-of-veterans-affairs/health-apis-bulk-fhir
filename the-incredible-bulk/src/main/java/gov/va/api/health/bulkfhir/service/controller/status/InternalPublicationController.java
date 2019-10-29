@@ -2,10 +2,14 @@ package gov.va.api.health.bulkfhir.service.controller.status;
 
 import java.util.LinkedList;
 import java.util.List;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -13,12 +17,13 @@ import org.springframework.web.bind.annotation.RestController;
 @Validated
 @RestController
 @RequestMapping(
-  value = {"internal/bulk"},
-  produces = {"application/json", "application/json+fhir", "application/fhir+json"}
-)
-public class InternalBulkController {
+    value = {"internal/publication"},
+    produces = {"application/json"})
+@AllArgsConstructor(onConstructor = @__({@Autowired}))
+@Builder
+public class InternalPublicationController {
 
-  @Autowired StatusRepository repository;
+  private final StatusRepository repository;
 
   @GetMapping
   List<StatusEntity> deleteMe() {
@@ -41,4 +46,7 @@ public class InternalBulkController {
             .buildCompleteEpoch(0)
             .build());
   }
+
+  @DeleteMapping(path = "{id}")
+  public void deletePublication(@PathVariable("id") String publicationId) {}
 }
