@@ -5,6 +5,8 @@ import gov.va.api.health.sentinel.SentinelProperties;
 import gov.va.api.health.sentinel.ServiceDefinition;
 import lombok.experimental.UtilityClass;
 
+import java.util.Optional;
+
 /**
  * {@link SystemDefinition}s for different environments. {@link #systemDefinition()} method provides
  * the appropriate implementation for the current environment.
@@ -50,6 +52,7 @@ public class SystemDefinitions {
         .url(SentinelProperties.optionUrl(name, url))
         .port(port)
         .apiPath(SentinelProperties.optionApiPath(name, apiPath))
+        .accessToken(() -> Optional.ofNullable(null))
         .build();
   }
 
