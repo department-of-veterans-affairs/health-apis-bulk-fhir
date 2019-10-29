@@ -3,9 +3,8 @@ package gov.va.api.health.bulkfhir.tests;
 import gov.va.api.health.sentinel.Environment;
 import gov.va.api.health.sentinel.SentinelProperties;
 import gov.va.api.health.sentinel.ServiceDefinition;
-import lombok.experimental.UtilityClass;
-
 import java.util.Optional;
+import lombok.experimental.UtilityClass;
 
 /**
  * {@link SystemDefinition}s for different environments. {@link #systemDefinition()} method provides
