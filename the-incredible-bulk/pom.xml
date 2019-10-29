@@ -8,9 +8,19 @@
     <relativePath/>
   </parent>
   <artifactId>the-incredible-bulk</artifactId>
-  <version>1.0.5-SNAPSHOT</version>
+  <version>1.0.6-SNAPSHOT</version>
   <packaging>jar</packaging>
+  <properties>
+    <mssql-jdbc.version>7.4.1.jre12</mssql-jdbc.version>
+    <!-- TODO: SET COVERAGE TO 95% -->
+    <jacoco.coverage>0.01</jacoco.coverage>
+  </properties>
   <dependencies>
+    <dependency>
+      <groupId>com.microsoft.sqlserver</groupId>
+      <artifactId>mssql-jdbc</artifactId>
+      <version>${mssql-jdbc.version}</version>
+    </dependency>
     <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-beans</artifactId>
@@ -19,6 +29,20 @@
     <dependency>
       <groupId>gov.va.api.health</groupId>
       <artifactId>service-auto-config</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-data-jpa</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.liquibase</groupId>
+      <artifactId>liquibase-core</artifactId>
+    </dependency>
+    <!-- Move this to test scope after MSSQL is available -->
+    <dependency>
+      <groupId>com.h2database</groupId>
+      <artifactId>h2</artifactId>
+      <scope>compile</scope>
     </dependency>
   </dependencies>
 </project>
