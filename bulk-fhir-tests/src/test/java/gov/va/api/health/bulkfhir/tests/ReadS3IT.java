@@ -17,7 +17,7 @@ public class ReadS3IT {
   @Test
   @Category({ProdBulkFhir.class, LabBulkFhir.class})
   public void readIndexFile() {
-    String path = apiPath() + "/bulk/publication/index.json";
+    String path = apiPath() + "bulk/publication/index.json";
     log.info("Verify index.json is readable [{}]", path);
     TestClients.bulkFhir()
         .get(ImmutableMap.of("bulk", System.getProperty("bulk-token", "default-value")), path)
