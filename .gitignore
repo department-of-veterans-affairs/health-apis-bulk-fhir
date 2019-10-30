@@ -1,5 +1,7 @@
 */target/
 !.mvn/wrapper/maven-wrapper.jar
+*.orig
+*~
 
 # Have stuff you don't want to commit but still find useful to hang around locally?
 */.private/
