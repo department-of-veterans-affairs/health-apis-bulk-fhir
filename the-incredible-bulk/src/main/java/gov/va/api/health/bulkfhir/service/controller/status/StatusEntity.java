@@ -44,12 +44,12 @@ class StatusEntity {
   private String fileName;
 
   /** The row or record number of the first item in this file. */
-  @Column(name = "firstRecord")
-  private int firstRecord;
+  @Column(name = "page")
+  private int page;
 
   /** The row or record number of the last item in this file. */
-  @Column(name = "lastRecord")
-  private int lastRecord;
+  @Column(name = "count")
+  private int count;
 
   /**
    * 0 if this file has not been started, otherwise the epoch milliseconds that building started.

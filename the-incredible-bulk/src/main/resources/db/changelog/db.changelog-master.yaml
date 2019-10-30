@@ -48,12 +48,12 @@ databaseChangeLog:
                   constraints:
                     nullable: false
               - column:
-                  name: firstRecord
+                  name: page
                   type: int
                   constraints:
                     nullable: false
               - column:
-                  name: lastRecord
+                  name: count
                   type: int
                   constraints:
                     nullable: false

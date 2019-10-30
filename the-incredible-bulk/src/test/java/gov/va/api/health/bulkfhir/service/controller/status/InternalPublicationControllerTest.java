@@ -3,17 +3,19 @@ package gov.va.api.health.bulkfhir.service.controller.status;
 import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import gov.va.api.health.bulkfhir.api.internal.PublicationRequest;
+import gov.va.api.health.bulkfhir.service.controller.status.DataQueryBatchClient.ResourceCount;
 import gov.va.api.health.bulkfhir.service.controller.status.PublicationExceptions.PublicationAlreadyExists;
 import gov.va.api.health.bulkfhir.service.controller.status.PublicationExceptions.PublicationNotFound;
+import gov.va.api.health.bulkfhir.service.controller.status.PublicationExceptions.PublicationRecordsPerFileTooBig;
 import gov.va.api.health.bulkfhir.service.controller.status.PublicationSamples.Api;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -22,9 +24,31 @@ public class InternalPublicationControllerTest {
 
   @Mock StatusRepository repo;
   @Mock PublicationStatusTransformer tx;
+  @Mock DataQueryBatchClient dq;
+
+  private void assertStatusEntityCreated(
+      StatusEntity entity,
+      String publicationId,
+      int recordsPerFile,
+      int page,
+      int count,
+      String fileName) {
+    assertThat(entity.publicationId()).isEqualTo(publicationId);
+    assertThat(entity.recordsPerFile()).isEqualTo(recordsPerFile);
+    assertThat(entity.fileName()).isEqualTo(fileName);
+    assertThat(entity.page()).isEqualTo(page);
+    assertThat(entity.count()).isEqualTo(count);
+    assertThat(entity.buildStartEpoch()).isZero();
+    assertThat(entity.buildCompleteEpoch()).isZero();
+    assertThat(entity.buildProcessorId()).isNull();
+  }
 
   InternalPublicationController controller() {
-    return InternalPublicationController.builder().repository(repo).transformer(tx).build();
+    return InternalPublicationController.builder()
+        .repository(repo)
+        .dataQuery(dq)
+        .transformer(tx)
+        .build();
   }
 
   @Test
@@ -71,11 +95,46 @@ public class InternalPublicationControllerTest {
 
   @Test
   void postPublicationCreatesNewPublication() {
-    // TODO interact with dq here.
+    when(repo.countByPublicationId("p")).thenReturn(0);
+    when(dq.requestPatientCount())
+        .thenReturn(
+            ResourceCount.builder()
+                .resourceType("Patient")
+                .count(333)
+                .maxRecordsPerPage(100)
+                .build());
+
     controller()
         .createPublication(
             PublicationRequest.builder().publicationId("p").recordsPerFile(100).build());
-    fail();
+
+    ArgumentCaptor<List<StatusEntity>> args = ArgumentCaptor.forClass(List.class);
+    verify(repo).saveAll(args.capture());
+
+    var entities = args.getValue();
+    assertStatusEntityCreated(entities.get(0), "p", 100, 1, 100, "Patient-0001");
+    assertStatusEntityCreated(entities.get(1), "p", 100, 2, 100, "Patient-0002");
+    assertStatusEntityCreated(entities.get(2), "p", 100, 3, 100, "Patient-0003");
+    assertStatusEntityCreated(entities.get(3), "p", 100, 4, 33, "Patient-0004");
+  }
+
+  @Test
+  void postPublicationThrowsErrorIfRequestedPageSizeIsTooBig() {
+    when(repo.countByPublicationId("p")).thenReturn(0);
+    when(dq.requestPatientCount())
+        .thenReturn(
+            ResourceCount.builder()
+                .resourceType("Patient")
+                .count(1000)
+                .maxRecordsPerPage(99)
+                .build());
+
+    assertThrows(
+        PublicationRecordsPerFileTooBig.class,
+        () ->
+            controller()
+                .createPublication(
+                    PublicationRequest.builder().publicationId("p").recordsPerFile(100).build()));
   }
 
   @Test

@@ -2,9 +2,11 @@ package gov.va.api.health.bulkfhir.service.controller.status;
 
 import static gov.va.api.health.bulkfhir.service.controller.status.PublicationExceptions.assertDoesNotExist;
 import static gov.va.api.health.bulkfhir.service.controller.status.PublicationExceptions.assertPublicationFound;
+import static gov.va.api.health.bulkfhir.service.controller.status.PublicationExceptions.assertRecordsPerFile;
 
 import gov.va.api.health.bulkfhir.api.internal.PublicationRequest;
 import gov.va.api.health.bulkfhir.api.internal.PublicationStatus;
+import java.time.Instant;
 import java.util.LinkedList;
 import java.util.List;
 import lombok.Builder;
@@ -33,47 +35,47 @@ class InternalPublicationController {
 
   private final PublicationStatusTransformer transformer;
 
+  private final DataQueryBatchClient dataQuery;
+
   @Builder
   InternalPublicationController(
       @Autowired StatusRepository repository,
+      @Autowired DataQueryBatchClient dataQuery,
       @Autowired(required = false) PublicationStatusTransformer transformer) {
     this.repository = repository;
+    this.dataQuery = dataQuery;
     this.transformer =
         transformer == null ? new DefaultPublicationStatusTransformer() : transformer;
-  }
-
-  // TODO DELETE ME
-  @GetMapping
-  List<StatusEntity> _deleteMe() {
-    var result = new LinkedList<StatusEntity>();
-    repository.findAll().forEach(result::add);
-    return result;
-  }
-
-  // TODO DELETE ME
-  @GetMapping(value = {"/add"})
-  void _deleteMeAddOne() {
-    repository.save(
-        StatusEntity.builder()
-            .publicationId("pubby")
-            .publicationEpoch(System.currentTimeMillis())
-            .recordsPerFile(10)
-            .firstRecord(1)
-            .lastRecord(10)
-            .fileName("filegumbo")
-            .buildStartEpoch(0)
-            .buildCompleteEpoch(0)
-            .build());
   }
 
   @PostMapping
   @ResponseStatus(HttpStatus.CREATED)
   public void createPublication(@RequestBody PublicationRequest request) {
     int existing = repository.countByPublicationId(request.publicationId());
-    assertDoesNotExist(existing == 0, request.publicationId());
+    assertDoesNotExist(existing != 0, request.publicationId());
+    var resources = dataQuery.requestPatientCount();
+    assertRecordsPerFile(request.recordsPerFile(), resources.maxRecordsPerPage());
 
-    //
-
+    var publicationEpoch = Instant.now().toEpochMilli();
+    var fileName = "Patient-%04d";
+    int page = 1;
+    int remaining = resources.count();
+    var entities = new LinkedList<StatusEntity>();
+    while (remaining > 0) {
+      int thisFileSize = Math.min(request.recordsPerFile(), remaining);
+      entities.add(
+          StatusEntity.builder()
+              .publicationId(request.publicationId())
+              .publicationEpoch(publicationEpoch)
+              .recordsPerFile(request.recordsPerFile())
+              .fileName(String.format(fileName, page))
+              .page(page)
+              .count(thisFileSize)
+              .build());
+      page++;
+      remaining -= thisFileSize;
+    }
+    repository.saveAll(entities);
   }
 
   @DeleteMapping(path = "{id}")
