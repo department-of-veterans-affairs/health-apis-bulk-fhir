@@ -20,7 +20,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-public class StatusEntity {
+class StatusEntity {
   @Id
   @Column(name = "id", updatable = false, nullable = false)
   @EqualsAndHashCode.Include
@@ -28,8 +28,8 @@ public class StatusEntity {
   private String id;
 
   /** The name of the publication that this file is part of. */
-  @Column(name = "publicationName")
-  private String publicationName;
+  @Column(name = "publicationId")
+  private String publicationId;
 
   /** Publication date in epoch milliseconds. */
   @Column(name = "publicationEpoch")

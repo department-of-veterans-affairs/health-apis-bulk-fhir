@@ -23,8 +23,8 @@ databaseChangeLog:
                     nullable: false
               # Publication information
               - column:
-                  name: publicationName
-                  type: varchar(36)
+                  name: publicationId
+                  type: varchar(64)
                   constraints:
                     nullable: false
               - column:
