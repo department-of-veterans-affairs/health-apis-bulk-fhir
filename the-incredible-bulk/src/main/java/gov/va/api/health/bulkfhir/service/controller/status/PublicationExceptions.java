@@ -5,13 +5,25 @@ import lombok.experimental.UtilityClass;
 @UtilityClass
 public class PublicationExceptions {
 
-  public class PublicationAlreadyExists extends PublicationException {
+  static void assertPublicationFound(boolean found, String publicationId) {
+    if (!found) {
+      throw new PublicationNotFound(publicationId);
+    }
+  }
+
+  static void assertDoesNotExist(boolean exists, String publicationId) {
+    if (exists) {
+      throw new PublicationAlreadyExists(publicationId);
+    }
+  }
+
+  public static class PublicationAlreadyExists extends PublicationException {
     public PublicationAlreadyExists(String publicationId) {
       super(publicationId);
     }
   }
 
-  public class PublicationException extends RuntimeException {
+  public static class PublicationException extends RuntimeException {
     PublicationException(String message) {
       super(message);
     }
@@ -21,7 +33,7 @@ public class PublicationExceptions {
     }
   }
 
-  public class PublicationNotFound extends PublicationException {
+  public static class PublicationNotFound extends PublicationException {
     public PublicationNotFound(String publicationId) {
       super(publicationId);
     }

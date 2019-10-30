@@ -1,5 +1,8 @@
 package gov.va.api.health.bulkfhir.service.controller.status;
 
+import static gov.va.api.health.bulkfhir.service.controller.status.PublicationExceptions.assertDoesNotExist;
+import static gov.va.api.health.bulkfhir.service.controller.status.PublicationExceptions.assertPublicationFound;
+
 import gov.va.api.health.bulkfhir.api.internal.PublicationRequest;
 import gov.va.api.health.bulkfhir.api.internal.PublicationStatus;
 import java.util.LinkedList;
@@ -65,18 +68,29 @@ class InternalPublicationController {
 
   @PostMapping
   @ResponseStatus(HttpStatus.CREATED)
-  public void createPublication(@RequestBody PublicationRequest request) {}
+  public void createPublication(@RequestBody PublicationRequest request) {
+    int existing = repository.countByPublicationId(request.publicationId());
+    assertDoesNotExist(existing == 0, request.publicationId());
+
+    //
+
+  }
 
   @DeleteMapping(path = "{id}")
-  public void deletePublication(@PathVariable("id") String publicationId) {}
+  public void deletePublication(@PathVariable("id") String publicationId) {
+    var deleted = repository.deleteByPublicationId(publicationId);
+    assertPublicationFound(deleted > 0, publicationId);
+  }
 
   @GetMapping
   public List<String> getPublicationIds() {
-    return null;
+    return repository.findDistinctPublicationIds();
   }
 
   @GetMapping(path = "{id}")
   public PublicationStatus getPublicationStatus(@PathVariable("id") String publicationId) {
-    return null;
+    var entities = repository.findByPublicationId(publicationId);
+    assertPublicationFound(!entities.isEmpty(), publicationId);
+    return transformer.apply(entities);
   }
 }
