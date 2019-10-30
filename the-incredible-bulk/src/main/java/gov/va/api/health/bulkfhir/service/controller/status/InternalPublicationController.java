@@ -27,8 +27,9 @@ import org.springframework.web.bind.annotation.RestController;
 @Validated
 @RestController
 @RequestMapping(
-    value = {"internal/publication"},
-    produces = {"application/json"})
+  value = {"internal/publication"},
+  produces = {"application/json"}
+)
 class InternalPublicationController {
 
   private final StatusRepository repository;

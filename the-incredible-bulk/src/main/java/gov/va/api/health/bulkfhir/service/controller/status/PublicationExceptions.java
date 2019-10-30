@@ -5,15 +5,15 @@ import lombok.experimental.UtilityClass;
 @UtilityClass
 public class PublicationExceptions {
 
-  static void assertPublicationFound(boolean found, String publicationId) {
-    if (!found) {
-      throw new PublicationNotFound(publicationId);
-    }
-  }
-
   static void assertDoesNotExist(boolean exists, String publicationId) {
     if (exists) {
       throw new PublicationAlreadyExists(publicationId);
+    }
+  }
+
+  static void assertPublicationFound(boolean found, String publicationId) {
+    if (!found) {
+      throw new PublicationNotFound(publicationId);
     }
   }
 
@@ -24,12 +24,14 @@ public class PublicationExceptions {
   }
 
   public static class PublicationAlreadyExists extends PublicationException {
+
     public PublicationAlreadyExists(String publicationId) {
       super(publicationId);
     }
   }
 
   public static class PublicationException extends RuntimeException {
+
     PublicationException(String message) {
       super(message);
     }
@@ -40,12 +42,14 @@ public class PublicationExceptions {
   }
 
   public static class PublicationNotFound extends PublicationException {
+
     public PublicationNotFound(String publicationId) {
       super(publicationId);
     }
   }
 
   public static class PublicationRecordsPerFileTooBig extends PublicationException {
+
     public PublicationRecordsPerFileTooBig(int recordsPerFile, int maxAllowed) {
       super("Requested: " + recordsPerFile + ", max allowed: " + maxAllowed);
     }

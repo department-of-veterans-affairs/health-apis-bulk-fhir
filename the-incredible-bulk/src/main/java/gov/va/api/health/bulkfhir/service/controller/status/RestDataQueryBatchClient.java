@@ -17,6 +17,9 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestTemplate;
 
+/**
+ * REST implementation of the batch client that accesses Data Query by providing the access token.
+ */
 @Component
 public class RestDataQueryBatchClient implements DataQueryBatchClient {
 
@@ -26,6 +29,7 @@ public class RestDataQueryBatchClient implements DataQueryBatchClient {
   private final String accessKeyHeader;
   private final String internalBulkPath;
 
+  /** Spring constructor that allows customization from application properties. */
   @Builder
   public RestDataQueryBatchClient(
       @Value("${dataquery.url}") String baseUrl,
