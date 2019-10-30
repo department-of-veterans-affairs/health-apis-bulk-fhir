@@ -72,3 +72,10 @@ databaseChangeLog:
                   type: varchar(36)
                   constraints:
                     nullable: true
+        - createIndex:
+            tableName: Status
+            schemaName: app
+            columns:
+              - column:
+                  name: publicationId
+
