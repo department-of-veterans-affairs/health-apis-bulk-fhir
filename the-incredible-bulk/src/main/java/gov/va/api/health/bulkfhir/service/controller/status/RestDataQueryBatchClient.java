@@ -33,7 +33,7 @@ public class RestDataQueryBatchClient implements DataQueryBatchClient {
   @Builder
   public RestDataQueryBatchClient(
       @Value("${dataquery.url}") String baseUrl,
-      @Value("${dataquery.internal-bulk-path:/internal/bulk") String internalBulkPath,
+      @Value("${dataquery.internal-bulk-path:/internal/bulk}") String internalBulkPath,
       @Value("${dataquery.access-key-header:bulk}") String accessKeyHeader,
       @Value("${dataquery.access-key}") String accessKey,
       @Autowired RestTemplate restTemplate) {
