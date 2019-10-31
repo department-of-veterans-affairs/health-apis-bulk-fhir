@@ -34,13 +34,16 @@ public class InternalPublicationIT {
       endpoint.getPublication("nope-" + System.currentTimeMillis()).expect(404);
       /* Publication ID not ok */
       endpoint
+          .create(PublicationRequest.builder().publicationId("no").recordsPerFile(100).build())
+          .expect(400);
+      /* Try to create same publication twice */
+      endpoint
           .create(
               PublicationRequest.builder()
                   .publicationId("errorCodes-1")
                   .recordsPerFile(100)
                   .build())
           .expect(201);
-      /* Duplicate */
       endpoint
           .create(
               PublicationRequest.builder()
@@ -48,7 +51,7 @@ public class InternalPublicationIT {
                   .recordsPerFile(100)
                   .build())
           .expect(400);
-      /* Not exist */
+      /* Delete it, then try to delete it again */
       endpoint.deletePublication("errorCodes-1").expect(200);
       endpoint.deletePublication("errorCodes-1").expect(404);
     }
