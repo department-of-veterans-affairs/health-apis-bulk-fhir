@@ -25,7 +25,7 @@ public class SystemDefinitions {
   private static SystemDefinition local() {
     String url = "http://localhost";
     return SystemDefinition.builder()
-        .bulkFhir(serviceDefinition("incredible-bulk", url, 8091, "/"))
+        .bulkFhir(serviceDefinition("incredible-bulk", url, 8091, ""))
         .build();
   }
 

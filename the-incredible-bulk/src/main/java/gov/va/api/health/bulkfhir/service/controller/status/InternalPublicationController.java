@@ -9,6 +9,7 @@ import gov.va.api.health.bulkfhir.api.internal.PublicationStatus;
 import java.time.Instant;
 import java.util.LinkedList;
 import java.util.List;
+import javax.validation.Valid;
 import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,7 +52,7 @@ class InternalPublicationController {
 
   @PostMapping
   @ResponseStatus(HttpStatus.CREATED)
-  public void createPublication(@RequestBody PublicationRequest request) {
+  public void createPublication(@Valid @RequestBody PublicationRequest request) {
     int existing = repository.countByPublicationId(request.publicationId());
     assertDoesNotExist(existing != 0, request.publicationId());
     var resources = dataQuery.requestPatientCount();
