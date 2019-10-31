@@ -93,8 +93,8 @@ setupForTests() {
   validateProvidedVariables
 
   SYSTEM_PROPERTIES="-Dsentinel=$SENTINEL_ENV \
-    -Dintegration.bulkfhir.url=$K8S_LOAD_BALANCER \
-    -Dintegration.bulkfhir.api-path=$BULK_FHIR_API_PATH \
+    -Dsentinel.incredible-bulk.url=https://$K8S_LOAD_BALANCER \
+    -Dsentinel.incredible-bulk.api-path=$BULK_FHIR_API_PATH \
     -Dbulk-token=$BULK_TOKEN"
 }
 
