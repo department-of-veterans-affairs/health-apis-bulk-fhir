@@ -7,6 +7,8 @@ import gov.va.api.health.bulkfhir.api.internal.PublicationStatus;
 import gov.va.api.health.bulkfhir.api.internal.PublicationStatus.FileStatus;
 import java.time.Instant;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Supplier;
 import lombok.NoArgsConstructor;
 
 class PublicationSamples {
@@ -20,6 +22,7 @@ class PublicationSamples {
           .publicationId("HokeyPokey123")
           .recordsPerFile(100)
           .creationDate(THEN.minus(24, HOURS))
+          .overallStatus(BuildStatus.IN_PROGRESS)
           .file(
               FileStatus.builder()
                   .fileId("f1")
@@ -44,7 +47,7 @@ class PublicationSamples {
               FileStatus.builder()
                   .fileId("f3")
                   .firstRecord(200)
-                  .lastRecord(299)
+                  .lastRecord(232)
                   .buildStartTime(null)
                   .buildCompleteTime(null)
                   .status(BuildStatus.NOT_STARTED)
@@ -56,12 +59,13 @@ class PublicationSamples {
 
   @NoArgsConstructor(staticName = "create")
   static class Entity {
-    List<StatusEntity> entitiesWithoutIds() {
+    List<StatusEntity> entities(Supplier<String> ids) {
       String publicationId = "HokeyPokey123";
       int recordsPerFile = 100;
       Instant creationDate = THEN.minus(24, HOURS);
       return List.of(
           StatusEntity.builder()
+              .id(ids.get())
               .publicationId(publicationId)
               .recordsPerFile(recordsPerFile)
               .publicationEpoch(creationDate.toEpochMilli())
@@ -73,27 +77,38 @@ class PublicationSamples {
               .buildProcessorId("incredible-bulk-1")
               .build(),
           StatusEntity.builder()
+              .id(ids.get())
               .publicationId(publicationId)
               .recordsPerFile(recordsPerFile)
               .publicationEpoch(creationDate.toEpochMilli())
               .fileName("f2")
               .page(2)
               .count(100)
-              .buildStartEpoch(THEN.minus(23, HOURS).toEpochMilli())
+              .buildStartEpoch(THEN.minus(2, HOURS).toEpochMilli())
               .buildCompleteEpoch(0)
               .buildProcessorId("incredible-bulk-2")
               .build(),
           StatusEntity.builder()
+              .id(ids.get())
               .publicationId(publicationId)
               .recordsPerFile(recordsPerFile)
               .publicationEpoch(creationDate.toEpochMilli())
-              .fileName("f2")
+              .fileName("f3")
               .page(3)
-              .count(100)
+              .count(33)
               .buildStartEpoch(0)
               .buildCompleteEpoch(0)
               .buildProcessorId(null)
               .build());
+    }
+
+    List<StatusEntity> entitiesWithIds() {
+      AtomicInteger id = new AtomicInteger(0);
+      return entities(() -> "" + id.incrementAndGet());
+    }
+
+    List<StatusEntity> entitiesWithoutIds() {
+      return entities(() -> null);
     }
   }
 }

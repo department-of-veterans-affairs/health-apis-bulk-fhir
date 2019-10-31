@@ -1,5 +1,7 @@
 package gov.va.api.health.bulkfhir.service.controller.status;
 
+import java.time.Instant;
+import java.util.Optional;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -70,4 +72,23 @@ class StatusEntity {
    */
   @Column(name = "buildProcessorId")
   private String buildProcessorId;
+
+  public Optional<Instant> asInstant(long maybeEpoch) {
+    if (maybeEpoch <= 0) {
+      return Optional.empty();
+    }
+    return Optional.of(Instant.ofEpochMilli(maybeEpoch));
+  }
+
+  public Optional<Instant> buildCompleteTime() {
+    return asInstant(buildCompleteEpoch);
+  }
+
+  public Optional<Instant> buildStartTime() {
+    return asInstant(buildStartEpoch);
+  }
+
+  public Optional<Instant> publicationTime() {
+    return asInstant(publicationEpoch);
+  }
 }

@@ -31,13 +31,8 @@ public class PublicationExceptions {
   }
 
   public static class PublicationException extends RuntimeException {
-
     PublicationException(String message) {
       super(message);
-    }
-
-    PublicationException(String message, Throwable cause) {
-      super(message, cause);
     }
   }
 
