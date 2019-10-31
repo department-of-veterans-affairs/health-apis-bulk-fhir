@@ -3,15 +3,11 @@
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>gov.va.api.health</groupId>
-    <artifactId>health-apis-parent</artifactId>
+    <artifactId>api-starter</artifactId>
     <version>4.0.0</version>
+    <relativePath/>
   </parent>
-  <artifactId>bulk-fhir-parent</artifactId>
+  <artifactId>bulk-fhir-api</artifactId>
   <version>1.0.11-SNAPSHOT</version>
-  <packaging>pom</packaging>
-  <modules>
-    <module>bulk-fhir-api</module>
-    <module>the-incredible-bulk</module>
-    <module>bulk-fhir-tests</module>
-  </modules>
+  <packaging>jar</packaging>
 </project>

@@ -12,14 +12,23 @@
   <packaging>jar</packaging>
   <properties>
     <mssql-jdbc.version>7.4.1.jre12</mssql-jdbc.version>
-    <!-- TODO: SET COVERAGE TO 95% -->
-    <jacoco.coverage>0.01</jacoco.coverage>
+    <argonaut.version>2.0.12</argonaut.version>
   </properties>
   <dependencies>
     <dependency>
       <groupId>com.microsoft.sqlserver</groupId>
       <artifactId>mssql-jdbc</artifactId>
       <version>${mssql-jdbc.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>gov.va.api.health</groupId>
+      <artifactId>bulk-fhir-api</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>gov.va.api.health</groupId>
+      <artifactId>argonaut</artifactId>
+      <version>${argonaut.version}</version>
     </dependency>
     <dependency>
       <groupId>org.springframework</groupId>
@@ -45,4 +54,23 @@
       <scope>compile</scope>
     </dependency>
   </dependencies>
+  <build>
+    <plugins>
+      <plugin>
+        <artifactId>maven-jar-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>library-jar</id>
+            <phase>package</phase>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+            <configuration>
+              <classifier>library</classifier>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
 </project>

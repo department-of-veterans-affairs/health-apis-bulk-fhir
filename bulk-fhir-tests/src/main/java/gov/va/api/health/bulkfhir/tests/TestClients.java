@@ -14,7 +14,7 @@ public class TestClients {
 
   static TestClient bulkFhir() {
     return BasicTestClient.builder()
-        .service(SystemDefinitions.systemDefinition().getBulkFhir())
+        .service(SystemDefinitions.systemDefinition().bulkFhir())
         .contentType("application/json")
         .mapper(JacksonConfig::createMapper)
         .build();

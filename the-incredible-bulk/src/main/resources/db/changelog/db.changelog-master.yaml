@@ -23,8 +23,8 @@ databaseChangeLog:
                     nullable: false
               # Publication information
               - column:
-                  name: publicationName
-                  type: varchar(36)
+                  name: publicationId
+                  type: varchar(64)
                   constraints:
                     nullable: false
               - column:
@@ -48,12 +48,12 @@ databaseChangeLog:
                   constraints:
                     nullable: false
               - column:
-                  name: firstRecord
+                  name: page
                   type: int
                   constraints:
                     nullable: false
               - column:
-                  name: lastRecord
+                  name: count
                   type: int
                   constraints:
                     nullable: false
@@ -72,3 +72,12 @@ databaseChangeLog:
                   type: varchar(36)
                   constraints:
                     nullable: true
+        - createIndex:
+            tableName: Status
+            schemaName: app
+            clustered: false
+            indexName: StatusPublicationIdIdx
+            columns:
+              - column:
+                  name: publicationId
+

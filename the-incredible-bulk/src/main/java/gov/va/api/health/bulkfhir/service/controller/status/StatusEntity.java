@@ -1,5 +1,7 @@
 package gov.va.api.health.bulkfhir.service.controller.status;
 
+import java.time.Instant;
+import java.util.Optional;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -20,7 +22,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-public class StatusEntity {
+class StatusEntity {
   @Id
   @Column(name = "id", updatable = false, nullable = false)
   @EqualsAndHashCode.Include
@@ -28,8 +30,8 @@ public class StatusEntity {
   private String id;
 
   /** The name of the publication that this file is part of. */
-  @Column(name = "publicationName")
-  private String publicationName;
+  @Column(name = "publicationId")
+  private String publicationId;
 
   /** Publication date in epoch milliseconds. */
   @Column(name = "publicationEpoch")
@@ -44,12 +46,12 @@ public class StatusEntity {
   private String fileName;
 
   /** The row or record number of the first item in this file. */
-  @Column(name = "firstRecord")
-  private int firstRecord;
+  @Column(name = "page")
+  private int page;
 
   /** The row or record number of the last item in this file. */
-  @Column(name = "lastRecord")
-  private int lastRecord;
+  @Column(name = "count")
+  private int count;
 
   /**
    * 0 if this file has not been started, otherwise the epoch milliseconds that building started.
@@ -70,4 +72,23 @@ public class StatusEntity {
    */
   @Column(name = "buildProcessorId")
   private String buildProcessorId;
+
+  public Optional<Instant> asInstant(long maybeEpoch) {
+    if (maybeEpoch <= 0) {
+      return Optional.empty();
+    }
+    return Optional.of(Instant.ofEpochMilli(maybeEpoch));
+  }
+
+  public Optional<Instant> buildCompleteTime() {
+    return asInstant(buildCompleteEpoch);
+  }
+
+  public Optional<Instant> buildStartTime() {
+    return asInstant(buildStartEpoch);
+  }
+
+  public Optional<Instant> publicationTime() {
+    return asInstant(publicationEpoch);
+  }
 }
