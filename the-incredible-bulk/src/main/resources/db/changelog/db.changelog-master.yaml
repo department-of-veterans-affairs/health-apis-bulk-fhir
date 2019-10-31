@@ -75,6 +75,8 @@ databaseChangeLog:
         - createIndex:
             tableName: Status
             schemaName: app
+            clustered: false
+            indexName: StatusPublicationIdIdx
             columns:
               - column:
                   name: publicationId
