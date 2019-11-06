@@ -13,5 +13,6 @@
     <module>bulk-fhir-api</module>
     <module>the-incredible-bulk</module>
     <module>bulk-fhir-tests</module>
+    <module>anonymizer</module>
   </modules>
 </project>
