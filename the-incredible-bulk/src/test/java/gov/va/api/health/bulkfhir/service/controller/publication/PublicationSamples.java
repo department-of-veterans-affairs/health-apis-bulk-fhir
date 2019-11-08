@@ -1,10 +1,11 @@
-package gov.va.api.health.bulkfhir.service.controller.status;
+package gov.va.api.health.bulkfhir.service.controller.publication;
 
 import static java.time.temporal.ChronoUnit.HOURS;
 
 import gov.va.api.health.bulkfhir.api.internal.BuildStatus;
 import gov.va.api.health.bulkfhir.api.internal.PublicationStatus;
 import gov.va.api.health.bulkfhir.api.internal.PublicationStatus.FileStatus;
+import gov.va.api.health.bulkfhir.service.status.StatusEntity;
 import java.time.Instant;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
