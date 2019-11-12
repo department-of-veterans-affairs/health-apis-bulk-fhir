@@ -13,8 +13,6 @@
   <properties>
     <mssql-jdbc.version>7.4.1.jre12</mssql-jdbc.version>
     <argonaut.version>2.0.13</argonaut.version>
-    <!-- The automatic /hung endpoint component isn't able to be tested. ¯\_(ツ)_/¯ -->
-    <jacoco.coverage>0.94</jacoco.coverage>
   </properties>
   <dependencies>
     <dependency>
