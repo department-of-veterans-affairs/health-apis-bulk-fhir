@@ -7,5 +7,7 @@ public interface SyntheticData {
 
   String synthesizeDate(String rawBirthdate);
 
-  List<HumanName> synthesizeName(List<HumanName> name);
+  String synthesizeDateTime(String rawDateTime);
+
+  List<HumanName> synthesizeName(long seed);
 }

@@ -10,17 +10,22 @@
   <version>1.0.12-SNAPSHOT</version>
   <packaging>jar</packaging>
   <properties>
-    <argonaut-dstu2.version>2.0.11</argonaut-dstu2.version>
+    <argonaut.version>2.0.13</argonaut.version>
   </properties>
   <dependencies>
     <dependency>
       <groupId>gov.va.api.health</groupId>
       <artifactId>argonaut</artifactId>
-      <version>${argonaut-dstu2.version}</version>
+      <version>${argonaut.version}</version>
     </dependency>
     <dependency>
       <groupId>org.projectlombok</groupId>
       <artifactId>lombok</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-test</artifactId>
+      <scope>test</scope>
     </dependency>
   </dependencies>
 </project>
