@@ -14,7 +14,6 @@ public class PatientAnonymizer implements Function<Patient, Patient> {
 
   /** Anonymize a Patient Record. */
   public Patient apply(Patient resource) {
-
     /**
      * Lets get a repeatable seed from our patient record, so that we can create replicable
      * Synthetic data. For our seed, we will strip the V out of the ICN, and use the resulting long.
@@ -22,20 +21,14 @@ public class PatientAnonymizer implements Function<Patient, Patient> {
      */
     long icnBasedSeed = icnBasedSeed(resource.id());
     return Patient.builder()
-        // remove address
-        // synth birthdate
         .birthDate(syntheticData.synthesizeDate(resource.birthDate()))
         .careProvider(resource.careProvider())
         .communication(resource.communication())
-        // remove contact
         .contained(resource.contained())
         .deceasedBoolean(resource.deceasedBoolean())
-        // synth deceasedDateTime
         .deceasedDateTime(syntheticData.synthesizeDateTime(resource.deceasedDateTime()))
         .extension(resource.extension())
         .gender(resource.gender())
-        // remove id
-        // remove identifier
         .implicitRules(resource.implicitRules())
         .language(resource.language())
         .link(resource.link())
@@ -43,13 +36,11 @@ public class PatientAnonymizer implements Function<Patient, Patient> {
         .maritalStatus(resource.maritalStatus())
         .meta(resource.meta())
         .modifierExtension(resource.modifierExtension())
-        .multipleBirthBoolean(resource.multipleBirthBoolean())
-        // Remove multipleBirthInteger
-        // synth name
+        .multipleBirthBoolean(
+            sanitizeMultipleBirthBoolean(
+                resource.multipleBirthBoolean(), resource.multipleBirthInteger()))
         .name(syntheticData.synthesizeName(icnBasedSeed))
-        // remove photo
         .resourceType(resource.resourceType())
-        // remove telecom
         .text(resource.text())
         .build();
   }
@@ -67,5 +58,17 @@ public class PatientAnonymizer implements Function<Patient, Patient> {
       icnBasedSeed = id.hashCode();
     }
     return icnBasedSeed;
+  }
+
+  /**
+   * MBI and MBB are a one of choice. If MBI is provided, anonymization must drop it, and instead
+   * provide the MBB corresponding the value.
+   */
+  private boolean sanitizeMultipleBirthBoolean(
+      Boolean multipleBirthBoolean, Integer multipleBirthInteger) {
+    if (multipleBirthInteger != null) {
+      return multipleBirthInteger > 0;
+    }
+    return multipleBirthBoolean;
   }
 }

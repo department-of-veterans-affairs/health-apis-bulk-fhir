@@ -18,7 +18,7 @@ public class ResourceBasedSyntheticDataTest {
 
   @Test
   void synthesizeDate() {
-    assertThat(syntheticData().synthesizeDate("1999-09-29")).isEqualTo("1999-08-01");
+    assertThat(syntheticData().synthesizeDate("1999-09-29")).isEqualTo("1999-01-01");
   }
 
   @Test
@@ -35,7 +35,7 @@ public class ResourceBasedSyntheticDataTest {
   @Test
   void synthesizeDateTime() {
     assertThat(syntheticData().synthesizeDateTime("1999-09-29T11:11:11"))
-        .isEqualTo("1999-08-01T11:11:11");
+        .isEqualTo("1999-01-01T11:11:11");
   }
 
   @Test

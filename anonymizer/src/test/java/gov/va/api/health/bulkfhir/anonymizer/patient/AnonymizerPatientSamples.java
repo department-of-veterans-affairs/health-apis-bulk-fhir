@@ -106,6 +106,7 @@ class AnonymizerPatientSamples {
           // remove telecom
           // remove address
           .gender(Gender.male)
+          .multipleBirthBoolean(false)
           // Synthesize birthDate to the 1st of the previous month
           .birthDate("1970-10-01")
           // Synthesize deceasedDateTime to the 1st of the previous month
@@ -246,6 +247,7 @@ class AnonymizerPatientSamples {
           .gender(Gender.male)
           .birthDate("1970-11-14")
           .deceasedDateTime("2001-03-03T15:08:09Z")
+          .multipleBirthBoolean(false)
           .address(
               List.of(
                   Address.builder()

@@ -9,6 +9,7 @@ import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
+/** Class path resource based implementation of synthetic data. */
 @Slf4j
 @Builder
 public class ResourceBasedSyntheticData implements SyntheticData {
@@ -16,8 +17,8 @@ public class ResourceBasedSyntheticData implements SyntheticData {
   private final Names names;
 
   /**
-   * We synthesize Dates and DateTimes by using: month = previous month day = first of the month
-   * This technique is a one way transformation and can't be reversed.
+   * We synthesize Dates and DateTimes by using: month = 1st month , day = first of the month This
+   * technique is a one way transformation and can't be reversed.
    */
   @Override
   public String synthesizeDate(String rawDate) {
@@ -27,7 +28,7 @@ public class ResourceBasedSyntheticData implements SyntheticData {
     LocalDate date;
     try {
       date = LocalDate.parse(rawDate);
-      date = date.withMonth(date.getMonthValue() - 1);
+      date = date.withMonth(1);
       date = date.withDayOfMonth(1);
     } catch (DateTimeParseException e) {
       log.info("Unable to parse the date [{}], using a default value.", rawDate);
@@ -44,7 +45,7 @@ public class ResourceBasedSyntheticData implements SyntheticData {
     LocalDateTime date;
     try {
       date = LocalDateTime.parse(rawDateTime);
-      date = date.withMonth(date.getMonthValue() - 1);
+      date = date.withMonth(1);
       date = date.withDayOfMonth(1);
     } catch (DateTimeParseException e) {
       log.info("Unable to parse the dateTime [{}], using a defualt value.", rawDateTime);
