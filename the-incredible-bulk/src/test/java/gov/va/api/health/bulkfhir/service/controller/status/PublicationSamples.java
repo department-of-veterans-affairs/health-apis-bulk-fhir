@@ -9,6 +9,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import lombok.NoArgsConstructor;
 
 class PublicationSamples {
@@ -47,11 +48,21 @@ class PublicationSamples {
               FileStatus.builder()
                   .fileId("f3")
                   .firstRecord(200)
-                  .lastRecord(232)
+                  .lastRecord(299)
                   .buildStartTime(null)
                   .buildCompleteTime(null)
                   .status(BuildStatus.NOT_STARTED)
                   .buildProcessorId(null)
+                  .build())
+          .file(
+              FileStatus.builder()
+                  .fileId("f4")
+                  .firstRecord(300)
+                  .lastRecord(343)
+                  .buildStartTime(THEN.minus(4, HOURS))
+                  .buildCompleteTime(null)
+                  .status(BuildStatus.IN_PROGRESS)
+                  .buildProcessorId("incredible-bulk-4")
                   .build())
           .build();
     }
@@ -59,10 +70,10 @@ class PublicationSamples {
 
   @NoArgsConstructor(staticName = "create")
   static class Entity {
-    List<StatusEntity> entities(Supplier<String> ids) {
+    List<StatusEntity> entities(Supplier<String> ids, Instant when) {
       String publicationId = "HokeyPokey123";
       int recordsPerFile = 100;
-      Instant creationDate = THEN.minus(24, HOURS);
+      Instant creationDate = when.minus(24, HOURS);
       return List.of(
           StatusEntity.builder()
               .id(ids.get())
@@ -72,8 +83,8 @@ class PublicationSamples {
               .fileName("f1")
               .page(1)
               .count(100)
-              .buildStartEpoch(THEN.minus(23, HOURS).toEpochMilli())
-              .buildCompleteEpoch(THEN.minus(22, HOURS).toEpochMilli())
+              .buildStartEpoch(when.minus(23, HOURS).toEpochMilli())
+              .buildCompleteEpoch(when.minus(22, HOURS).toEpochMilli())
               .buildProcessorId("incredible-bulk-1")
               .build(),
           StatusEntity.builder()
@@ -84,7 +95,7 @@ class PublicationSamples {
               .fileName("f2")
               .page(2)
               .count(100)
-              .buildStartEpoch(THEN.minus(2, HOURS).toEpochMilli())
+              .buildStartEpoch(when.minus(2, HOURS).toEpochMilli())
               .buildCompleteEpoch(0)
               .buildProcessorId("incredible-bulk-2")
               .build(),
@@ -95,20 +106,40 @@ class PublicationSamples {
               .publicationEpoch(creationDate.toEpochMilli())
               .fileName("f3")
               .page(3)
-              .count(33)
+              .count(100)
               .buildStartEpoch(0)
               .buildCompleteEpoch(0)
               .buildProcessorId(null)
+              .build(),
+          StatusEntity.builder()
+              .id(ids.get())
+              .publicationId(publicationId)
+              .recordsPerFile(recordsPerFile)
+              .publicationEpoch(creationDate.toEpochMilli())
+              .fileName("f4")
+              .page(4)
+              .count(44)
+              .buildStartEpoch(when.minus(4, HOURS).toEpochMilli())
+              .buildCompleteEpoch(0)
+              .buildProcessorId("incredible-bulk-4")
               .build());
+    }
+
+    List<StatusEntity> entitiesInProgress() {
+      AtomicInteger id = new AtomicInteger(0);
+      return entities(() -> "IP" + id.incrementAndGet(), Instant.now())
+          .stream()
+          .filter(e -> e.buildStartEpoch() != 0 && e.buildCompleteEpoch() == 0)
+          .collect(Collectors.toList());
     }
 
     List<StatusEntity> entitiesWithIds() {
       AtomicInteger id = new AtomicInteger(0);
-      return entities(() -> "" + id.incrementAndGet());
+      return entities(() -> "" + id.incrementAndGet(), THEN);
     }
 
     List<StatusEntity> entitiesWithoutIds() {
-      return entities(() -> null);
+      return entities(() -> null, THEN);
     }
   }
 }

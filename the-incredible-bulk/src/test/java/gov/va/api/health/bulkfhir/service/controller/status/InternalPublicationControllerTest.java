@@ -19,8 +19,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.ResponseStatus;
 
 @ExtendWith(MockitoExtension.class)
 public class InternalPublicationControllerTest {
@@ -99,12 +97,19 @@ public class InternalPublicationControllerTest {
   }
 
   @Test
-  @ResponseStatus(value = HttpStatus.OK)
   void manuallyClearHungPublication() {
-    when(repo.findByStatusInProgress())
-        .thenReturn(PublicationSamples.Entity.create().entitiesWithIds());
+    // Assert that we start with two IN_PROGRESS entities
+    List<StatusEntity> inProgress = PublicationSamples.Entity.create().entitiesInProgress();
+    assertThat(inProgress.size()).isEqualTo(2);
+    when(repo.findByStatusInProgress()).thenReturn(inProgress);
     controller()
-        .manuallyClearHungPublication(ClearHungRequest.builder().hangTime("3 hours").build());
+        .manuallyClearHungPublications(ClearHungRequest.builder().hangTime("3 hours").build());
+    ArgumentCaptor<List<StatusEntity>> captor = ArgumentCaptor.forClass(List.class);
+    verify(repo).saveAll(captor.capture());
+    /* 3 hours will reset one of the two in progress entity
+     * the start epoch should have been reset to 0 */
+    assertThat(captor.getValue().size()).isEqualTo(1);
+    assertThat(captor.getValue().get(0).buildStartEpoch()).isEqualTo(0);
   }
 
   @Test

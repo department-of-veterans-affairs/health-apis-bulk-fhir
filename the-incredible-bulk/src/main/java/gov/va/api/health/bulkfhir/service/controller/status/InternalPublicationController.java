@@ -12,12 +12,12 @@ import java.time.Instant;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 import javax.validation.Valid;
 import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -52,16 +52,6 @@ class InternalPublicationController {
     this.dataQuery = dataQuery;
     this.transformer =
         transformer == null ? new DefaultPublicationStatusTransformer() : transformer;
-  }
-
-  @Scheduled(cron = "${hung-status.cron.expression}")
-  public void automaticallyClearHungPublication() {
-    /* We'll grab this property from the system properties, but just in case we'll
-     * default to 15 minutes (900000 ms).
-     */
-    String statusAllowedHangTime = System.getProperty("hung-status.allowed.hangtime", "15 minutes");
-    doClearHungStatusMarkers(
-        ClearHungRequest.builder().hangTime(statusAllowedHangTime).build().hangTime());
   }
 
   @PostMapping
@@ -100,17 +90,21 @@ class InternalPublicationController {
   }
 
   public void doClearHungStatusMarkers(Duration allowedHangTime) {
+    // Note: allowedHangTime.toString() will print out in a Duration format (i.e. PT15M)
+    log.info(
+        "Cleaning up publications with IN_PROGRESS status markers older than: {}",
+        allowedHangTime.toString());
     var entities = repository.findByStatusInProgress();
     var nowEpoch = Instant.now().toEpochMilli();
-    entities
-        .stream()
-        .filter(Objects::nonNull)
-        .filter(e -> (nowEpoch - e.buildStartEpoch()) > allowedHangTime.toMillis())
-        .forEach(
-            s -> {
-              s.buildStartEpoch(0);
-              repository.save(s);
-            });
+    var resetEntities =
+        entities
+            .stream()
+            .filter(Objects::nonNull)
+            .filter(e -> (nowEpoch - e.buildStartEpoch()) > allowedHangTime.toMillis())
+            .collect(Collectors.toList());
+
+    resetEntities.stream().forEach(s -> s.buildStartEpoch(0));
+    repository.saveAll(resetEntities);
   }
 
   @GetMapping
@@ -127,8 +121,7 @@ class InternalPublicationController {
 
   @PostMapping(path = "hung")
   @ResponseStatus(HttpStatus.OK)
-  public void manuallyClearHungPublication(@RequestBody ClearHungRequest clearHungRequest) {
-    log.info("Manual kick off of /hung endpoint: {}", clearHungRequest.hangTime().toString());
+  public void manuallyClearHungPublications(@RequestBody ClearHungRequest clearHungRequest) {
     doClearHungStatusMarkers(clearHungRequest.hangTime());
   }
 }
