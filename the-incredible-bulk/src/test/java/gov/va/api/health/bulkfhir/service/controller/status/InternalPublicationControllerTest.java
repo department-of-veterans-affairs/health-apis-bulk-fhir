@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import gov.va.api.health.bulkfhir.api.internal.ClearHungRequest;
 import gov.va.api.health.bulkfhir.api.internal.PublicationRequest;
 import gov.va.api.health.bulkfhir.service.controller.status.DataQueryBatchClient.ResourceCount;
 import gov.va.api.health.bulkfhir.service.controller.status.PublicationExceptions.PublicationAlreadyExists;
@@ -18,12 +19,16 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.ResponseStatus;
 
 @ExtendWith(MockitoExtension.class)
 public class InternalPublicationControllerTest {
 
   @Mock StatusRepository repo;
+
   @Mock PublicationStatusTransformer tx;
+
   @Mock DataQueryBatchClient dq;
 
   private void assertStatusEntityCreated(
@@ -94,6 +99,15 @@ public class InternalPublicationControllerTest {
   }
 
   @Test
+  @ResponseStatus(value = HttpStatus.OK)
+  void manuallyClearHungPublication() {
+    when(repo.findByStatusInProgress())
+        .thenReturn(PublicationSamples.Entity.create().entitiesWithIds());
+    controller()
+        .manuallyClearHungPublication(ClearHungRequest.builder().hangTime("3 hours").build());
+  }
+
+  @Test
   void postPublicationCreatesNewPublication() {
     when(repo.countByPublicationId("p")).thenReturn(0);
     when(dq.requestPatientCount())
@@ -103,14 +117,11 @@ public class InternalPublicationControllerTest {
                 .count(333)
                 .maxRecordsPerPage(100)
                 .build());
-
     controller()
         .createPublication(
             PublicationRequest.builder().publicationId("p").recordsPerFile(100).build());
-
     ArgumentCaptor<List<StatusEntity>> args = ArgumentCaptor.forClass(List.class);
     verify(repo).saveAll(args.capture());
-
     var entities = args.getValue();
     assertStatusEntityCreated(entities.get(0), "p", 100, 1, 100, "Patient-0001");
     assertStatusEntityCreated(entities.get(1), "p", 100, 2, 100, "Patient-0002");
@@ -128,7 +139,6 @@ public class InternalPublicationControllerTest {
                 .count(1000)
                 .maxRecordsPerPage(99)
                 .build());
-
     assertThrows(
         PublicationRecordsPerFileTooBig.class,
         () ->
