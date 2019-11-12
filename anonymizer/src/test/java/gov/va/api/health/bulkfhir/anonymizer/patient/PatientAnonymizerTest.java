@@ -56,4 +56,13 @@ public class PatientAnonymizerTest {
     Long expected = Long.valueOf("0123456789012345");
     assertThat(anonymizer().icnBasedSeed("0123456789V012345")).isEqualTo(expected);
   }
+
+  @Test
+  void sanitizeMultipleBirthBoolean() {
+    assertThat(anonymizer().sanitizeMultipleBirthBoolean(true, null)).isTrue();
+    assertThat(anonymizer().sanitizeMultipleBirthBoolean(false, null)).isFalse();
+    assertThat(anonymizer().sanitizeMultipleBirthBoolean(null, 2)).isTrue();
+    assertThat(anonymizer().sanitizeMultipleBirthBoolean(null, 0)).isFalse();
+    assertThat(anonymizer().sanitizeMultipleBirthBoolean(null, -1)).isFalse();
+  }
 }
