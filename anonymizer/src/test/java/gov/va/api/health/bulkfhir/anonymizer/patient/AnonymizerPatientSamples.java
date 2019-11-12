@@ -28,10 +28,11 @@ import lombok.AllArgsConstructor;
 import lombok.experimental.UtilityClass;
 
 @UtilityClass
-public class AnonymizerPatientSamples {
+class AnonymizerPatientSamples {
 
+  /** Container class for sample anonymized patient. */
   @AllArgsConstructor(staticName = "create")
-  public static class Anonymized {
+  static class Anonymized {
     static Patient.Bundle asBundle(
         String basePath, Collection<Patient> records, BundleLink... links) {
       return Patient.Bundle.builder()
@@ -60,11 +61,11 @@ public class AnonymizerPatientSamples {
           .build();
     }
 
-    public Patient patient() {
+    Patient patient() {
       return patient("1000003");
     }
 
-    public Patient patient(String id) {
+    Patient patient(String id) {
       return Patient.builder()
           // Remove ID
           .resourceType("Patient")
@@ -124,8 +125,9 @@ public class AnonymizerPatientSamples {
     }
   }
 
+  /** Container class for sample FHIR patient. */
   @AllArgsConstructor(staticName = "create")
-  public static class Fhir {
+  static class Fhir {
     static Patient.Bundle asBundle(
         String basePath, Collection<Patient> records, BundleLink... links) {
       return Patient.Bundle.builder()
@@ -154,11 +156,11 @@ public class AnonymizerPatientSamples {
           .build();
     }
 
-    public Patient patient() {
+    Patient patient() {
       return patient("1000003");
     }
 
-    public Patient patient(String id) {
+    Patient patient(String id) {
       return Patient.builder()
           .id(id)
           .resourceType("Patient")

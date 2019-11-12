@@ -54,7 +54,11 @@ public class PatientAnonymizer implements Function<Patient, Patient> {
         .build();
   }
 
-  public long icnBasedSeed(String id) {
+  /**
+   * Generate a seed for name synthesis derived from the ICN. Fallback to a string hash if we can't
+   * parse the ICN. This will allow for a unique, repeatible seed for each ICN.
+   */
+  long icnBasedSeed(String id) {
     long icnBasedSeed;
     try {
       icnBasedSeed = Long.parseLong(id.replace("V", ""));

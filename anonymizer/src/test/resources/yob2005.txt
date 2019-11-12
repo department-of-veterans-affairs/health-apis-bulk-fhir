@@ -1,5 +1,0 @@
-Washington,M,1
-Adams,M,2
-Jefferson,H,11
-Madison,Z,22
-Monroe,X,1000
