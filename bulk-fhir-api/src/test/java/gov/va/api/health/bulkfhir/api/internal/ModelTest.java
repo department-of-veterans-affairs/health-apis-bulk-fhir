@@ -2,15 +2,35 @@ package gov.va.api.health.bulkfhir.api.internal;
 
 import static java.time.temporal.ChronoUnit.HOURS;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.va.api.health.autoconfig.configuration.JacksonConfig;
 import gov.va.api.health.bulkfhir.api.internal.PublicationStatus.FileStatus;
+import java.time.Duration;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
 
 public class ModelTest {
+
+  @Test
+  void clearHungRequest() {
+    ClearHungRequest sample = ClearHungRequest.builder().hangTime("30 minutes").build();
+    assertThat(sample.hangTime()).isEqualTo(Duration.of(30, ChronoUnit.MINUTES));
+    assertThrows(
+        RuntimeException.class,
+        () -> {
+          ClearHungRequest.builder().hangTime("30minutes").build().hangTime();
+        });
+    assertThrows(
+        RuntimeException.class,
+        () -> {
+          ClearHungRequest.builder().hangTime("30 minutes and 30 seconds").build().hangTime();
+        });
+    roundTrip(sample);
+  }
 
   @Test
   void publicationRequest() {
