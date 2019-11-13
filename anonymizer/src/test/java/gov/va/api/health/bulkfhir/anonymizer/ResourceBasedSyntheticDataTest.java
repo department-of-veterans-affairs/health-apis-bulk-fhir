@@ -40,7 +40,7 @@ public class ResourceBasedSyntheticDataTest {
 
   @Test
   void synthesizeDateTimeReturnsDefaultValueOnParseException() {
-    assertThat(syntheticData().synthesizeDateTime("GARBAGE")).isEqualTo("2000-01-01T01:01:01");
+    assertThat(syntheticData().synthesizeDateTime("GARBAGE")).isEqualTo("2000-01-01T01:01:01Z");
   }
 
   @Test

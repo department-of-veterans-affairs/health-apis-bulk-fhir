@@ -2,7 +2,6 @@ package gov.va.api.health.bulkfhir.anonymizer;
 
 import gov.va.api.health.dstu2.api.datatypes.HumanName;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeParseException;
@@ -56,7 +55,7 @@ public class ResourceBasedSyntheticData implements SyntheticData {
 
     } catch (DateTimeParseException e) {
       log.info("Unable to parse the dateTime [{}], using a defualt value.", rawDateTime);
-      date = OffsetDateTime.of(2000, 1, 1, 1, 1, 1, 0,  ZoneOffset.UTC);
+      date = OffsetDateTime.of(2000, 1, 1, 1, 1, 1, 0, ZoneOffset.UTC);
     }
     return date.toString();
   }
