@@ -38,13 +38,15 @@ public class ClassPathResourceBasedNames implements Names {
 
   @SneakyThrows
   private static List<String> loadList() {
-    int namesCount = 32459;
+    int namesCount = 32549;
     String sharedNamesClassPathResource = "yob2005.txt";
     List<String> list = new ArrayList<>(namesCount);
     BufferedReader reader =
         new BufferedReader(
             new InputStreamReader(
-                ClassLoader.getSystemResourceAsStream(sharedNamesClassPathResource),
+                ClassPathResourceBasedNames.class
+                    .getClassLoader()
+                    .getResourceAsStream(sharedNamesClassPathResource),
                 StandardCharsets.UTF_8));
     reader.lines().forEach(line -> list.add(line.split(",")[0]));
     reader.close();

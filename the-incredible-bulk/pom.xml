@@ -13,7 +13,19 @@
   <properties>
     <mssql-jdbc.version>7.4.1.jre12</mssql-jdbc.version>
     <argonaut.version>2.0.16</argonaut.version>
+    <aws.version>2.10.12</aws.version>
   </properties>
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>software.amazon.awssdk</groupId>
+        <artifactId>bom</artifactId>
+        <version>${aws.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
   <dependencies>
     <dependency>
       <groupId>com.microsoft.sqlserver</groupId>
@@ -23,6 +35,11 @@
     <dependency>
       <groupId>gov.va.api.health</groupId>
       <artifactId>bulk-fhir-api</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>gov.va.api.health</groupId>
+      <artifactId>anonymizer</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
@@ -46,6 +63,10 @@
     <dependency>
       <groupId>org.liquibase</groupId>
       <artifactId>liquibase-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>software.amazon.awssdk</groupId>
+      <artifactId>s3</artifactId>
     </dependency>
     <!-- Move this to test scope after MSSQL is available -->
     <dependency>

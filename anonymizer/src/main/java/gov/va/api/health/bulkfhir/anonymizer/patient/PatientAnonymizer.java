@@ -68,6 +68,6 @@ public class PatientAnonymizer implements Function<Patient, Patient> {
     if (multipleBirthInteger != null) {
       return multipleBirthInteger > 0;
     }
-    return multipleBirthBoolean;
+    return Boolean.TRUE.equals(multipleBirthBoolean);
   }
 }
