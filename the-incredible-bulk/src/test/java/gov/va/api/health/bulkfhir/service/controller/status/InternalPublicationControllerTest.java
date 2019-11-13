@@ -102,8 +102,7 @@ public class InternalPublicationControllerTest {
     List<StatusEntity> inProgress = PublicationSamples.Entity.create().entitiesInProgress();
     assertThat(inProgress.size()).isEqualTo(2);
     when(repo.findByStatusInProgress()).thenReturn(inProgress);
-    controller()
-        .manuallyClearHungPublications(ClearHungRequest.builder().hangTime("3 hours").build());
+    controller().manuallyClearHungPublications(ClearHungRequest.builder().hangTime("PT3H").build());
     ArgumentCaptor<List<StatusEntity>> captor = ArgumentCaptor.forClass(List.class);
     verify(repo).saveAll(captor.capture());
     /* 3 hours will reset one of the two in progress entity
