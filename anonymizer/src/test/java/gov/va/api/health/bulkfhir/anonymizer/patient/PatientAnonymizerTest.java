@@ -25,8 +25,8 @@ public class PatientAnonymizerTest {
   }
 
   /**
-   * Let's mock the synthesis process. We only want to test that the anonymizer is acting
-   * correctly on each patient field.
+   * Let's mock the synthesis process. We only want to test that the anonymizer is acting correctly
+   * on each patient field.
    */
   @Test
   void apply() {

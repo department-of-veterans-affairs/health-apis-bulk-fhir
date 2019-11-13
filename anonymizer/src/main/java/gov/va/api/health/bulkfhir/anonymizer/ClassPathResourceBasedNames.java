@@ -14,16 +14,15 @@ import lombok.extern.slf4j.Slf4j;
  * Using a class path resource as data, we provide a static set of names for the synthesis process
  * to choose from.
  *
- * This resource is a large file, and PatientAnonymizers are fleeting, 1 instance per patient record. We create
- * a static list of names, to prevent having to load this more than once. Whenever a {@link SyntheticData}
- * grabs a ClassPathResourceBasedNames instance, is will already contain a reference to the loaded list
- * of names.
+ * <p>This resource is a large file, and PatientAnonymizers are fleeting, 1 instance per patient
+ * record. We create a static list of names, to prevent having to load this more than once. Whenever
+ * a {@link SyntheticData} grabs a ClassPathResourceBasedNames instance, is will already contain a
+ * reference to the loaded list of names.
  *
- * We safely wrap the index of the list of names for ease of use. There could be some loss of information
- * in the wrapping, long -> int, but it does not matter in this case. We are only aiming for repeatable
- * access on the list with constant results.
+ * <p>We safely wrap the index of the list of names for ease of use. There could be some loss of
+ * information in the wrapping, long -> int, but it does not matter in this case. We are only aiming
+ * for repeatable access on the list with constant results.
  */
-
 @Slf4j
 @AllArgsConstructor
 public class ClassPathResourceBasedNames implements Names {
