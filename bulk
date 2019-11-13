@@ -1,0 +1,153 @@
+#!/usr/bin/env bash
+
+usage() {
+cat<<EOF
+$0 <command> [options]
+
+Tools for interactively testing The Incredible Bulk locally.
+This assumes Data Query running with the standard synthetic dataset.
+
+OPTIONS
+ --debug                      Enable debugging output
+ -h, --help                   Print this help and exit
+ -p, --publication-id   <id>  The publication Id ($PUBLICATION_ID)
+ -r, --records-per-file <n>   The number of records per file used when creating ($RECORDS_PER_FILE)
+
+COMMANDS
+create [--publication-id <id>] [--records-per-file <n>]
+  Create a new publication
+
+list
+  List publications
+
+get [--publication-id <id>]
+  Get the status of a specific publication
+
+delete [--publication-id <id>]
+  Delete a specific publication
+
+build [--publication-id <id>] --file-id <id>
+
+EOF
+exit 1
+}
+
+onExit() { rm -rf $WORK; }
+trap onExit EXIT
+
+fail() {
+  local status="$1"
+  local message="$2"
+  say "FAILURE: $message"
+  exit "$status"
+}
+
+success() {
+  say "SUCCESS: $1"
+}
+
+say() {
+  [ $VERBOSE == true ] && echo "$1"
+}
+
+printResponse() {
+  local activity=$1
+  local status=$2
+  local file=$3
+  [ "$(stat -c %s $file)" == 0 ] && echo "No response" || jq . $file
+  say "Status: $status"
+  [[ "$status" == 2?? ]] && success "$activity" || fail $status "$activity"
+}
+
+doCreate() {
+  local activity="Creating $PUBLICATION_ID with $RECORDS_PER_FILE records per file"
+  say "$activity"
+  local status=$(curl -sH Content-Type:application/json \
+    -o $WORK/create.json \
+    -w "%{http_code}" \
+    -d "{ \"publicationId\":\"$PUBLICATION_ID\",\"recordsPerFile\":$RECORDS_PER_FILE }"  \
+    $PUBLICATION_URL)
+  printResponse "$activity" "$status" $WORK/create.json
+}
+
+doList() {
+  curl -sH Content-Type:application/json \
+    $PUBLICATION_URL | jq .
+}
+
+doDelete() {
+  local activity="Deleting $PUBLICATION_ID"
+  say "$activity"
+  local status=$(curl -sH Content-Type:application/json \
+    -o $WORK/delete.json \
+    -w "%{http_code}" \
+    -X DELETE \
+    $PUBLICATION_URL/$PUBLICATION_ID)
+  printResponse "$activity" "$status" $WORK/delete.json
+}
+
+doGet() {
+  local activity="Getting $PUBLICATION_ID"
+  say "$activity"
+  local status=$(curl -sH Content-Type:application/json \
+    -o $WORK/response.json \
+    -w "%{http_code}" \
+    $PUBLICATION_URL/$PUBLICATION_ID)
+  printResponse "$activity" "$status" $WORK/response.json
+}
+
+
+checkFileId() {
+  [ -z "$FILE_ID" ] && usage "--file-id <id> not specified"
+}
+
+doBuild() {
+  checkFileId
+  local status=$(curl -sH Content-Type:application/json \
+    -o $WORK/response.json \
+    -w "%{http_code}" \
+    -X POST \
+    $PUBLICATION_URL/$PUBLICATION_ID/file/$FILE_ID)
+  printResponse "$activity" "$status" $WORK/response.json
+}
+
+#======================================================================
+PUBLICATION_URL=http://localhost:8091/internal/publication
+PUBLICATION_ID=synthetic
+FILE_ID=
+RECORDS_PER_FILE=25
+VERBOSE=false
+WORK=$(mktemp -d)
+
+
+ARGS=$(getopt -n $(basename ${0}) \
+    -l "debug,help,verbose,publication-id:,records-per-file:,file-id:" \
+    -o "hvp:r:f:" \
+    -- "$@")
+[ $? != 0 ] && usage
+eval set -- "$ARGS"
+while true
+do
+  case "$1" in
+    --debug) set -x;;
+    -h|--help) usage "halp! what this do?";;
+    -f|--file-id) FILE_ID="$2";;
+    -p|--publication-id) PUBLICATION_ID="$2";;
+    -r|--records-per-file) RECORDS_PER_FILE="$2";;
+    -v|--verbose) VERBOSE=true;;
+    --) shift;break;;
+  esac
+  shift;
+done
+[ $# != 1 ] && usage
+COMMAND=$1
+
+case $COMMAND in
+  b|build) doBuild;;
+  c|create) doCreate;;
+  d|delete) doDelete;;
+  g|get) doGet;;
+  l|list) doList;;
+  *) usage "Unknown command: $COMMAND";;
+esac
+

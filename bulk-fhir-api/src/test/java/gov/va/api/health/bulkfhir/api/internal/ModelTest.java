@@ -22,6 +22,15 @@ public class ModelTest {
   }
 
   @Test
+  void fileBuildResponse() {
+    roundTrip(
+        FileBuildResponse.builder()
+            .publicationId("HokeyPokey123")
+            .fileId("TurnYourselfAround")
+            .build());
+  }
+
+  @Test
   void publicationRequest() {
     roundTrip(
         PublicationRequest.builder().publicationId("HokeyPokey123").recordsPerFile(100).build());

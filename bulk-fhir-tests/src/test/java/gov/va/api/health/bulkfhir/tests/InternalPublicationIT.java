@@ -9,7 +9,7 @@ import gov.va.api.health.autoconfig.configuration.JacksonConfig;
 import gov.va.api.health.bulkfhir.api.internal.ClearHungRequest;
 import gov.va.api.health.bulkfhir.api.internal.PublicationRequest;
 import gov.va.api.health.bulkfhir.api.internal.PublicationStatus;
-import gov.va.api.health.bulkfhir.service.controller.status.DataQueryBatchClient.ResourceCount;
+import gov.va.api.health.bulkfhir.service.dataquery.client.DataQueryBatchClient.ResourceCount;
 import gov.va.api.health.sentinel.ExpectedResponse;
 import gov.va.api.health.sentinel.categories.Local;
 import io.restassured.http.Header;

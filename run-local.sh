@@ -32,6 +32,13 @@ exit 1
 }
 
 
+rebuildHere() {
+  local app=$1
+  echo "Rebuilding $app (non-standard, not cleaning, no tests)"
+  mvn package -P'!standard' -DskipTests -q
+  [ $? != 0 ] && echo "Aborting" && exit 1
+}
+
 startApp() {
   local app=$1
   local where=${APP_LOCATION[$app]}
@@ -41,6 +48,7 @@ startApp() {
   cd $REPO
   [ ! -d "$where" ] && echo "$where does not exist" && exit 1
   cd $where
+  [ "$REBUILD" == true ] && rebuildHere $app
   local jar=$(find target -maxdepth 1 -name "$app-*.jar" | grep -v -E 'tests|library')
   [ -z "$jar" ] && echo "Cannot find $app application jar" && exit 1
   local options="-Dapp.name=$app"
@@ -193,13 +201,14 @@ declare -A SHORT_OPTION_TO_APP
 REPO=$(cd $(dirname $0) && pwd)
 . $REPO/.run-local.conf
 
+REBUILD=false
 SPRING_PROFILES_ACTIVE=dev
 EMBEDDED_H2_ENABLED=false
 H2_VERSION=1.4.197
 
 ARGS=$(getopt -n $(basename ${0}) \
-    -l "debug,help,h2,profile:,$(echo "${!LONG_OPTION_TO_APP[@]}" | sort | tr ' ' ,)" \
-    -o "hp:$(echo "${!SHORT_OPTION_TO_APP[@]}" | sort | tr -d ' ')" \
+    -l "debug,help,h2,profile:,rebuild,$(echo "${!LONG_OPTION_TO_APP[@]}" | sort | tr ' ' ,)" \
+    -o "rhp:$(echo "${!SHORT_OPTION_TO_APP[@]}" | sort | tr -d ' ')" \
     -- "$@")
 [ $? != 0 ] && usage
 eval set -- "$ARGS"
@@ -210,6 +219,7 @@ do
     -h|--help) usage "halp! what this do?";;
     --h2) EMBEDDED_H2_ENABLED=true;;
     -p|--profile) SPRING_PROFILES_ACTIVE="$2";;
+    -r|--rebuild) REBUILD=true;;
     --) shift;break;;
   esac
   SIMPLE_OPTION=${1##*-}

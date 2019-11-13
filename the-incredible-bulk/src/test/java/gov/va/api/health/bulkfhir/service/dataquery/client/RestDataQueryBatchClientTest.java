@@ -1,4 +1,4 @@
-package gov.va.api.health.bulkfhir.service.controller.status;
+package gov.va.api.health.bulkfhir.service.dataquery.client;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -10,11 +10,11 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import gov.va.api.health.argonaut.api.resources.Patient;
-import gov.va.api.health.bulkfhir.service.controller.status.DataQueryBatchClient.AccessDenied;
-import gov.va.api.health.bulkfhir.service.controller.status.DataQueryBatchClient.BadRequest;
-import gov.va.api.health.bulkfhir.service.controller.status.DataQueryBatchClient.NotFound;
-import gov.va.api.health.bulkfhir.service.controller.status.DataQueryBatchClient.RequestFailed;
-import gov.va.api.health.bulkfhir.service.controller.status.DataQueryBatchClient.ResourceCount;
+import gov.va.api.health.bulkfhir.service.dataquery.client.DataQueryBatchClient.AccessDenied;
+import gov.va.api.health.bulkfhir.service.dataquery.client.DataQueryBatchClient.BadRequest;
+import gov.va.api.health.bulkfhir.service.dataquery.client.DataQueryBatchClient.NotFound;
+import gov.va.api.health.bulkfhir.service.dataquery.client.DataQueryBatchClient.RequestFailed;
+import gov.va.api.health.bulkfhir.service.dataquery.client.DataQueryBatchClient.ResourceCount;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
@@ -60,6 +60,12 @@ public class RestDataQueryBatchClientTest {
         .exchange(
             anyString(), eq(HttpMethod.GET), args.capture(), any(ParameterizedTypeReference.class));
     assertThat(args.getValue().getHeaders().get("secret")).containsExactly("open");
+  }
+
+  @Test
+  void countRethrowsWeirdExceptions() {
+    whenCountRequest().thenThrow(new ArithmeticException("fugazi"));
+    assertThrows(ArithmeticException.class, () -> client().requestPatientCount());
   }
 
   @Test
@@ -137,7 +143,7 @@ public class RestDataQueryBatchClientTest {
   private OngoingStubbing<ResponseEntity> whenPatientRequest() {
     return when(
         rt.exchange(
-            eq("http://awesome.com/i/b/Patient?page={page}&_count={count}"),
+            eq("http://awesome.com/i/b/Patient?page={page}&_count={_count}"),
             eq(HttpMethod.GET),
             any(HttpEntity.class),
             any(ParameterizedTypeReference.class),
