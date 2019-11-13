@@ -14,6 +14,7 @@ import gov.va.api.health.sentinel.ExpectedResponse;
 import gov.va.api.health.sentinel.categories.Local;
 import io.restassured.http.Header;
 import io.restassured.http.Method;
+import java.time.Duration;
 import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -83,7 +84,8 @@ public class InternalPublicationIT {
           .containsExactlyInAnyOrder("fullCycle-1", "fullCycle-2");
       /* Clear Hung Publications :lyin: */
       endpoint
-          .clearHungPublications(ClearHungRequest.builder().hangTime("PT87600H").build())
+          .clearHungPublications(
+              ClearHungRequest.builder().hangTime(Duration.parse("PT87600H")).build())
           .expect(200);
       assertThat(endpoint.listPublications().expect(200).expectListOf(String.class))
           .containsExactlyInAnyOrder("fullCycle-1", "fullCycle-2");

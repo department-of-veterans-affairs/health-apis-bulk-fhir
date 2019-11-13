@@ -107,7 +107,7 @@ class InternalPublicationController {
     assertPublicationFound(deleted > 0, publicationId);
   }
 
-  public void doClearHungStatusMarkers(Duration allowedHangTime) {
+  private void doClearHungStatusMarkers(Duration allowedHangTime) {
     // Note: allowedHangTime.toString() will print out in a Duration format (i.e. PT15M)
     log.info(
         "Cleaning up publications with IN_PROGRESS status markers older than: {}",

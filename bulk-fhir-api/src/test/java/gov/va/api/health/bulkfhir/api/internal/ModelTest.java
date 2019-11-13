@@ -16,7 +16,7 @@ public class ModelTest {
 
   @Test
   void clearHungRequest() {
-    ClearHungRequest sample = ClearHungRequest.builder().hangTime("PT30M").build();
+    ClearHungRequest sample = ClearHungRequest.builder().hangTime(Duration.parse("PT30M")).build();
     assertThat(sample.hangTime()).isEqualTo(Duration.of(30, ChronoUnit.MINUTES));
     roundTrip(sample);
   }

@@ -15,9 +15,6 @@ import lombok.Value;
 @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
 public class ClearHungRequest {
 
-  @NotNull String hangTime;
-
-  public Duration hangTime() {
-    return Duration.parse(hangTime);
-  }
+  @NotNull Duration hangTime;
+  
 }
