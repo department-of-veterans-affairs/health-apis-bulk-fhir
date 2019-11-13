@@ -2,7 +2,6 @@ package gov.va.api.health.bulkfhir.service.controller.publication;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -18,7 +17,6 @@ import gov.va.api.health.bulkfhir.service.filebuilder.FileClaimant;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Stream;
-
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -28,12 +26,14 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 public class NonDistributedFileWorkerTest {
+
   @Mock DataQueryBatchClient dq;
+
   @Mock FileClaimant claimant;
-  @Mock
-  BulkFileWriter fileWriter;
-  @Mock
-  ObjectMapper objectMapper;
+
+  @Mock BulkFileWriter fileWriter;
+
+  @Mock ObjectMapper objectMapper;
 
   private FileClaim claim() {
     return FileClaim.builder()
@@ -50,6 +50,18 @@ public class NonDistributedFileWorkerTest {
     assertThrows(ExecutionException.class, response::get);
   }
 
+  @Test
+  @SneakyThrows
+  void fileWriterIsGivenTheProperDataToWrite() {
+    when(dq.requestPatients(3, 1234)).thenReturn(refactorMeToBeReusableSamplePatients());
+    worker().buildFile(claim());
+    ArgumentCaptor<FileClaim> fileClaim = ArgumentCaptor.forClass(FileClaim.class);
+    ArgumentCaptor<Stream<String>> resourceStream = ArgumentCaptor.forClass(Stream.class);
+    verify(fileWriter).writeFile(fileClaim.capture(), resourceStream.capture());
+    assertThat(fileClaim.getValue()).isEqualTo(claim());
+    assertThat(resourceStream.getValue().count()).isEqualTo(1);
+  }
+
   private List<Patient> refactorMeToBeReusableSamplePatients() {
     return List.of(Patient.builder().build());
   }
@@ -63,19 +75,12 @@ public class NonDistributedFileWorkerTest {
         .isEqualTo(FileBuildResponse.builder().publicationId("p").fileId("f").build());
   }
 
-  @Test
-  @SneakyThrows
-  void fileWriterIsGivenTheProperDataToWrite() {
-    when(dq.requestPatients(3, 1234)).thenReturn(refactorMeToBeReusableSamplePatients());
-    worker().buildFile(claim());
-    ArgumentCaptor<FileClaim> fileClaim = ArgumentCaptor.forClass(FileClaim.class);
-    ArgumentCaptor<Stream<String>> resourceStream = ArgumentCaptor.forClass(Stream.class);
-    verify(fileWriter).writeFile(fileClaim.capture(), resourceStream.capture());
-    assertThat(fileClaim.getValue()).isEqualTo(claim());
-    assertThat(resourceStream.getValue().count()).isEqualTo(1);
-  }
-
   NonDistributedFileWorker worker() {
-    return NonDistributedFileWorker.builder().claimant(claimant).dataQuery(dq).fileWriter(fileWriter).jacksonMapper(objectMapper).build();
+    return NonDistributedFileWorker.builder()
+        .claimant(claimant)
+        .dataQuery(dq)
+        .fileWriter(fileWriter)
+        .jacksonMapper(objectMapper)
+        .build();
   }
 }
