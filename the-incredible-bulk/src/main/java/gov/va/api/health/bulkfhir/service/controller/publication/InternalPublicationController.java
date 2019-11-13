@@ -4,6 +4,7 @@ import static gov.va.api.health.bulkfhir.service.controller.publication.Publicat
 import static gov.va.api.health.bulkfhir.service.controller.publication.PublicationExceptions.assertPublicationFound;
 import static gov.va.api.health.bulkfhir.service.controller.publication.PublicationExceptions.assertRecordsPerFile;
 
+import gov.va.api.health.bulkfhir.api.internal.ClearHungRequest;
 import gov.va.api.health.bulkfhir.api.internal.FileBuildResponse;
 import gov.va.api.health.bulkfhir.api.internal.PublicationRequest;
 import gov.va.api.health.bulkfhir.api.internal.PublicationStatus;
@@ -12,9 +13,12 @@ import gov.va.api.health.bulkfhir.service.filebuilder.FileBuildRequest;
 import gov.va.api.health.bulkfhir.service.filebuilder.FileBuilder;
 import gov.va.api.health.bulkfhir.service.status.StatusEntity;
 import gov.va.api.health.bulkfhir.service.status.StatusRepository;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 import javax.validation.Valid;
 import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
@@ -75,7 +79,6 @@ class InternalPublicationController {
     assertDoesNotExist(existing != 0, request.publicationId());
     var resources = dataQuery.requestPatientCount();
     assertRecordsPerFile(request.recordsPerFile(), resources.maxRecordsPerPage());
-
     var publicationEpoch = Instant.now().toEpochMilli();
     var fileName = "Patient-%04d";
     int page = 1;
@@ -104,6 +107,24 @@ class InternalPublicationController {
     assertPublicationFound(deleted > 0, publicationId);
   }
 
+  private void doClearHungStatusMarkers(Duration allowedHangTime) {
+    // Note: allowedHangTime.toString() will print out in a Duration format (i.e. PT15M)
+    log.info(
+        "Cleaning up publications with IN_PROGRESS status markers older than: {}",
+        allowedHangTime.toString());
+    var entities = repository.findByStatusInProgress();
+    var nowEpoch = Instant.now().toEpochMilli();
+    var resetEntities =
+        entities
+            .stream()
+            .filter(Objects::nonNull)
+            .filter(e -> (nowEpoch - e.buildStartEpoch()) > allowedHangTime.toMillis())
+            .collect(Collectors.toList());
+
+    resetEntities.stream().forEach(s -> s.buildStartEpoch(0));
+    repository.saveAll(resetEntities);
+  }
+
   @GetMapping
   public List<String> getPublicationIds() {
     return repository.findDistinctPublicationIds();
@@ -114,5 +135,11 @@ class InternalPublicationController {
     var entities = repository.findByPublicationId(publicationId);
     assertPublicationFound(!entities.isEmpty(), publicationId);
     return transformer.apply(entities);
+  }
+
+  @PostMapping(path = "hung")
+  @ResponseStatus(HttpStatus.OK)
+  public void manuallyClearHungPublications(@RequestBody ClearHungRequest clearHungRequest) {
+    doClearHungStatusMarkers(clearHungRequest.hangTime());
   }
 }

@@ -17,8 +17,9 @@ Commands
  k, stop      Stop applications
 
 Options
+  -p, --profile         The <profile>-application.properties to use when running the application
+  --h2                  If the application support it, use an embedded H2 database
   -h, --help            Display this message and exit
-  -l, --local           If the application support it, use an embedded H2 database
 EOF
 
 for name in ${APP_NAME[@]}
