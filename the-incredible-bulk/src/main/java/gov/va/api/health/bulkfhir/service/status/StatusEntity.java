@@ -1,4 +1,4 @@
-package gov.va.api.health.bulkfhir.service.controller.status;
+package gov.va.api.health.bulkfhir.service.status;
 
 import java.time.Instant;
 import java.util.Optional;
@@ -8,6 +8,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import javax.persistence.Version;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -22,7 +23,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-class StatusEntity {
+public class StatusEntity {
   @Id
   @Column(name = "id", updatable = false, nullable = false)
   @EqualsAndHashCode.Include
@@ -73,7 +74,11 @@ class StatusEntity {
   @Column(name = "buildProcessorId")
   private String buildProcessorId;
 
-  public Optional<Instant> asInstant(long maybeEpoch) {
+  @Version
+  @Column(name = "version")
+  private int version;
+
+  private Optional<Instant> asInstant(long maybeEpoch) {
     if (maybeEpoch <= 0) {
       return Optional.empty();
     }

@@ -1,10 +1,11 @@
-package gov.va.api.health.bulkfhir.service.controller.status;
+package gov.va.api.health.bulkfhir.service.dataquery.client;
 
 import gov.va.api.health.argonaut.api.resources.Patient;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 import lombok.Builder;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
@@ -21,6 +22,7 @@ import org.springframework.web.client.RestTemplate;
  * REST implementation of the batch client that accesses Data Query by providing the access token.
  */
 @Component
+@Slf4j
 public class RestDataQueryBatchClient implements DataQueryBatchClient {
 
   private final RestTemplate restTemplate;
@@ -55,6 +57,9 @@ public class RestDataQueryBatchClient implements DataQueryBatchClient {
       throw new BadRequest(url);
     } catch (HttpStatusCodeException e) {
       throw new RequestFailed(url);
+    } catch (Exception e) {
+      log.error("Unhandled exception while fetching data. You probably have a bug.", e);
+      throw e;
     }
   }
 
@@ -80,7 +85,7 @@ public class RestDataQueryBatchClient implements DataQueryBatchClient {
 
   @Override
   public List<Patient> requestPatients(int page, int count) {
-    String url = urlOf("/Patient?page={page}&_count={count}");
+    String url = urlOf("/Patient?page={page}&_count={_count}");
     return callTo(
             url,
             () ->

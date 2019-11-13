@@ -1,4 +1,4 @@
-package gov.va.api.health.bulkfhir.service.controller.status;
+package gov.va.api.health.bulkfhir.service.controller.publication;
 
 import lombok.experimental.UtilityClass;
 
@@ -8,6 +8,12 @@ public class PublicationExceptions {
   static void assertDoesNotExist(boolean exists, String publicationId) {
     if (exists) {
       throw new PublicationAlreadyExists(publicationId);
+    }
+  }
+
+  static void assertPublicationFileFound(boolean found, String publicationId, String fileId) {
+    if (!found) {
+      throw new PublicationFileNotFound(publicationId, fileId);
     }
   }
 
@@ -31,8 +37,16 @@ public class PublicationExceptions {
   }
 
   public static class PublicationException extends RuntimeException {
+
     PublicationException(String message) {
       super(message);
+    }
+  }
+
+  public static class PublicationFileNotFound extends PublicationException {
+
+    public PublicationFileNotFound(String publicationId, String fileId) {
+      super(publicationId + " file: " + fileId);
     }
   }
 

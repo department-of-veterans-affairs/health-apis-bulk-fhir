@@ -1,11 +1,17 @@
-package gov.va.api.health.bulkfhir.service.controller.status;
+package gov.va.api.health.bulkfhir.service.controller.publication;
 
-import static gov.va.api.health.bulkfhir.service.controller.status.PublicationExceptions.assertDoesNotExist;
-import static gov.va.api.health.bulkfhir.service.controller.status.PublicationExceptions.assertPublicationFound;
-import static gov.va.api.health.bulkfhir.service.controller.status.PublicationExceptions.assertRecordsPerFile;
+import static gov.va.api.health.bulkfhir.service.controller.publication.PublicationExceptions.assertDoesNotExist;
+import static gov.va.api.health.bulkfhir.service.controller.publication.PublicationExceptions.assertPublicationFound;
+import static gov.va.api.health.bulkfhir.service.controller.publication.PublicationExceptions.assertRecordsPerFile;
 
+import gov.va.api.health.bulkfhir.api.internal.FileBuildResponse;
 import gov.va.api.health.bulkfhir.api.internal.PublicationRequest;
 import gov.va.api.health.bulkfhir.api.internal.PublicationStatus;
+import gov.va.api.health.bulkfhir.service.dataquery.client.DataQueryBatchClient;
+import gov.va.api.health.bulkfhir.service.filebuilder.FileBuildRequest;
+import gov.va.api.health.bulkfhir.service.filebuilder.FileBuilder;
+import gov.va.api.health.bulkfhir.service.status.StatusEntity;
+import gov.va.api.health.bulkfhir.service.status.StatusRepository;
 import java.time.Instant;
 import java.util.LinkedList;
 import java.util.List;
@@ -33,6 +39,8 @@ import org.springframework.web.bind.annotation.RestController;
 )
 class InternalPublicationController {
 
+  private final FileBuilder fileBuilder;
+
   private final StatusRepository repository;
 
   private final PublicationStatusTransformer transformer;
@@ -41,13 +49,23 @@ class InternalPublicationController {
 
   @Builder
   InternalPublicationController(
+      @Autowired FileBuilder fileBuilder,
       @Autowired StatusRepository repository,
       @Autowired DataQueryBatchClient dataQuery,
       @Autowired(required = false) PublicationStatusTransformer transformer) {
+    this.fileBuilder = fileBuilder;
     this.repository = repository;
     this.dataQuery = dataQuery;
     this.transformer =
         transformer == null ? new DefaultPublicationStatusTransformer() : transformer;
+  }
+
+  @PostMapping(path = "{id}/file/{fileId}")
+  @ResponseStatus(HttpStatus.ACCEPTED)
+  public FileBuildResponse buildFile(
+      @PathVariable("id") String publicationId, @PathVariable("fileId") String fileId) {
+    return fileBuilder.buildFile(
+        FileBuildRequest.builder().publicationId(publicationId).fileId(fileId).build());
   }
 
   @PostMapping
