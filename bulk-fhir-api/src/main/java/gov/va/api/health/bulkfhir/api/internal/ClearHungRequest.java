@@ -16,5 +16,4 @@ import lombok.Value;
 public class ClearHungRequest {
 
   @NotNull Duration hangTime;
-  
 }
