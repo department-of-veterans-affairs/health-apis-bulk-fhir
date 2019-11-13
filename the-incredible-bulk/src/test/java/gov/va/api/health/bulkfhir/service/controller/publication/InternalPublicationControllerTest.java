@@ -1,17 +1,24 @@
-package gov.va.api.health.bulkfhir.service.controller.status;
+package gov.va.api.health.bulkfhir.service.controller.publication;
 
 import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
+import gov.va.api.health.bulkfhir.api.internal.FileBuildResponse;
 import gov.va.api.health.bulkfhir.api.internal.PublicationRequest;
-import gov.va.api.health.bulkfhir.service.controller.status.DataQueryBatchClient.ResourceCount;
-import gov.va.api.health.bulkfhir.service.controller.status.PublicationExceptions.PublicationAlreadyExists;
-import gov.va.api.health.bulkfhir.service.controller.status.PublicationExceptions.PublicationNotFound;
-import gov.va.api.health.bulkfhir.service.controller.status.PublicationExceptions.PublicationRecordsPerFileTooBig;
-import gov.va.api.health.bulkfhir.service.controller.status.PublicationSamples.Api;
+import gov.va.api.health.bulkfhir.service.controller.publication.PublicationExceptions.PublicationAlreadyExists;
+import gov.va.api.health.bulkfhir.service.controller.publication.PublicationExceptions.PublicationNotFound;
+import gov.va.api.health.bulkfhir.service.controller.publication.PublicationExceptions.PublicationRecordsPerFileTooBig;
+import gov.va.api.health.bulkfhir.service.controller.publication.PublicationSamples.Api;
+import gov.va.api.health.bulkfhir.service.dataquery.client.DataQueryBatchClient;
+import gov.va.api.health.bulkfhir.service.dataquery.client.DataQueryBatchClient.ResourceCount;
+import gov.va.api.health.bulkfhir.service.filebuilder.FileBuildRequest;
+import gov.va.api.health.bulkfhir.service.filebuilder.FileBuilder;
+import gov.va.api.health.bulkfhir.service.status.StatusEntity;
+import gov.va.api.health.bulkfhir.service.status.StatusRepository;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -25,6 +32,7 @@ public class InternalPublicationControllerTest {
   @Mock StatusRepository repo;
   @Mock PublicationStatusTransformer tx;
   @Mock DataQueryBatchClient dq;
+  @Mock FileBuilder buildManager;
 
   private void assertStatusEntityCreated(
       StatusEntity entity,
@@ -43,11 +51,23 @@ public class InternalPublicationControllerTest {
     assertThat(entity.buildProcessorId()).isNull();
   }
 
+  @Test
+  void buildForwardsCallsToBuildManager() {
+    var response = FileBuildResponse.builder().publicationId("x").fileId("a").build();
+    when(buildManager.buildFile(FileBuildRequest.builder().publicationId("x").fileId("a").build()))
+        .thenReturn(response);
+    assertThat(controller().buildFile("x", "a")).isSameAs(response);
+    verify(buildManager)
+        .buildFile(FileBuildRequest.builder().publicationId("x").fileId("a").build());
+    verifyNoMoreInteractions(buildManager);
+  }
+
   InternalPublicationController controller() {
     return InternalPublicationController.builder()
         .repository(repo)
         .dataQuery(dq)
         .transformer(tx)
+        .fileBuilder(buildManager)
         .build();
   }
 

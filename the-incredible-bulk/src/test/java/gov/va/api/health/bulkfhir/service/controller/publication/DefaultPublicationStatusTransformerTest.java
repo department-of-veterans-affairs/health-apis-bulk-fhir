@@ -1,9 +1,9 @@
-package gov.va.api.health.bulkfhir.service.controller.status;
+package gov.va.api.health.bulkfhir.service.controller.publication;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 import gov.va.api.health.bulkfhir.api.internal.BuildStatus;
-import gov.va.api.health.bulkfhir.service.controller.status.DefaultPublicationStatusTransformer.Counter;
+import gov.va.api.health.bulkfhir.service.controller.publication.DefaultPublicationStatusTransformer.Counter;
 import org.junit.jupiter.api.Test;
 
 public class DefaultPublicationStatusTransformerTest {

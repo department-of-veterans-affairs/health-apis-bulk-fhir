@@ -80,4 +80,18 @@ databaseChangeLog:
             columns:
               - column:
                   name: publicationId
+  - changeSet:
+      id: 3
+      author: shanktopus
+      changes:
+        - addColumn:
+            tableName: Status
+            schemaName: app
+            columns:
+              - column:
+                  name: version
+                  type: int
+                  defaultValue: 0
+                  constraints:
+                    nullable: false
 

@@ -1,4 +1,4 @@
-package gov.va.api.health.bulkfhir.service.controller.status;
+package gov.va.api.health.bulkfhir.service.dataquery.client;
 
 import gov.va.api.health.argonaut.api.resources.Patient;
 import java.util.List;

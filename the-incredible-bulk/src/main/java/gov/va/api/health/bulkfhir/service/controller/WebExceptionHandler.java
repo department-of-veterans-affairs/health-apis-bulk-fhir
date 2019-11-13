@@ -1,7 +1,8 @@
 package gov.va.api.health.bulkfhir.service.controller;
 
-import gov.va.api.health.bulkfhir.service.controller.status.DataQueryBatchClient;
-import gov.va.api.health.bulkfhir.service.controller.status.PublicationExceptions;
+import gov.va.api.health.bulkfhir.service.controller.publication.PublicationExceptions;
+import gov.va.api.health.bulkfhir.service.dataquery.client.DataQueryBatchClient;
+import gov.va.api.health.bulkfhir.service.filebuilder.FileBuilderExceptions;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.ConstraintViolationException;
 import lombok.AllArgsConstructor;
@@ -32,7 +33,9 @@ public class WebExceptionHandler {
     MethodArgumentNotValidException.class,
     UnsatisfiedServletRequestParameterException.class,
     PublicationExceptions.PublicationRecordsPerFileTooBig.class,
-    PublicationExceptions.PublicationAlreadyExists.class
+    PublicationExceptions.PublicationAlreadyExists.class,
+    FileBuilderExceptions.ClaimFailed.class,
+    FileBuilderExceptions.AlreadyClaimed.class
   })
   @ResponseStatus(HttpStatus.BAD_REQUEST)
   public ErrorMessage handleBadRequest(Exception e, HttpServletRequest request) {
@@ -41,14 +44,19 @@ public class WebExceptionHandler {
 
   @ExceptionHandler({
     HttpClientErrorException.NotFound.class,
-    PublicationExceptions.PublicationNotFound.class
+    PublicationExceptions.PublicationNotFound.class,
+    PublicationExceptions.PublicationFileNotFound.class
   })
   @ResponseStatus(HttpStatus.NOT_FOUND)
   public ErrorMessage handleNotFound(Exception e, HttpServletRequest request) {
     return ErrorMessage.of(e.getMessage());
   }
 
-  @ExceptionHandler({DataQueryBatchClient.DataQueryBatchClientException.class, Exception.class})
+  @ExceptionHandler({
+    DataQueryBatchClient.DataQueryBatchClientException.class,
+    FileBuilderExceptions.BuildFailed.class,
+    Exception.class
+  })
   @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
   public ErrorMessage internalServerError(Exception e) {
     return ErrorMessage.of(e.getClass().getSimpleName() + ": " + e.getMessage());
