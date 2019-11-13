@@ -2,6 +2,8 @@ package gov.va.api.health.bulkfhir.service.controller.publication;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -44,6 +46,14 @@ public class NonDistributedFileWorkerTest {
   }
 
   @Test
+  void failedResponseIsReturnedWhenFileWriterGivesException() throws Exception {
+    when(dq.requestPatients(3, 1234)).thenReturn(refactorMeToBeReusableSamplePatients());
+    doThrow(new IllegalArgumentException("NOPE")).when(fileWriter).writeFile(any(), any());
+    var response = worker().buildFile(claim());
+    assertThrows(ExecutionException.class, response::get);
+  }
+
+  @Test
   void failedResponseWhenPatientFetchFails() {
     when(dq.requestPatients(3, 1234)).thenThrow(new RequestFailed("xxx"));
     var response = worker().buildFile(claim());
@@ -54,6 +64,7 @@ public class NonDistributedFileWorkerTest {
   @SneakyThrows
   void fileWriterIsGivenTheProperDataToWrite() {
     when(dq.requestPatients(3, 1234)).thenReturn(refactorMeToBeReusableSamplePatients());
+    when(objectMapper.writeValueAsString(any())).thenReturn("HI");
     worker().buildFile(claim());
     ArgumentCaptor<FileClaim> fileClaim = ArgumentCaptor.forClass(FileClaim.class);
     ArgumentCaptor<Stream<String>> resourceStream = ArgumentCaptor.forClass(Stream.class);
@@ -63,7 +74,7 @@ public class NonDistributedFileWorkerTest {
   }
 
   private List<Patient> refactorMeToBeReusableSamplePatients() {
-    return List.of(Patient.builder().build());
+    return List.of(Patient.builder().id("12345V67890").build());
   }
 
   @Test

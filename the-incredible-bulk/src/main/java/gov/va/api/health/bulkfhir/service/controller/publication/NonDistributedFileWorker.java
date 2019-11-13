@@ -18,6 +18,7 @@ import gov.va.api.health.bulkfhir.service.filebuilder.FileClaim;
 import gov.va.api.health.bulkfhir.service.filebuilder.FileClaimant;
 import gov.va.api.health.dstu2.api.resources.Resource;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import java.util.stream.Stream;
@@ -47,7 +48,13 @@ public class NonDistributedFileWorker implements FileBuildWorker {
   public CompletableFuture<FileBuildResponse> buildFile(FileClaim claim) {
     try {
       List<Patient> patients = fetchPatients(claim);
-      writePatients(claim, patients.stream().map(patientAnonymizer()).map(jsonStringConverter()));
+      writePatients(
+          claim,
+          patients
+              .stream()
+              .map(patientAnonymizer())
+              .map(jsonStringConverter())
+              .filter(Objects::nonNull));
       return successfulResponse(claim);
     } catch (Exception e) {
       releaseClaim(claim);
