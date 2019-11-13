@@ -3,6 +3,8 @@ package gov.va.api.health.bulkfhir.anonymizer;
 import gov.va.api.health.dstu2.api.datatypes.HumanName;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeParseException;
 import java.util.List;
 import lombok.Builder;
@@ -42,14 +44,19 @@ public class ResourceBasedSyntheticData implements SyntheticData {
     if (StringUtils.isBlank(rawDateTime)) {
       return null;
     }
-    LocalDateTime date;
+    OffsetDateTime date;
     try {
-      date = LocalDateTime.parse(rawDateTime);
+      date = OffsetDateTime.parse(rawDateTime);
       date = date.withMonth(1);
       date = date.withDayOfMonth(1);
+      date = date.withHour(12);
+      date = date.withMinute(34);
+      date = date.withSecond(56);
+      date = date.withOffsetSameInstant(ZoneOffset.UTC);
+
     } catch (DateTimeParseException e) {
       log.info("Unable to parse the dateTime [{}], using a defualt value.", rawDateTime);
-      date = LocalDateTime.of(2000, 1, 1, 1, 1, 1);
+      date = OffsetDateTime.of(2000, 1, 1, 1, 1, 1, 0,  ZoneOffset.UTC);
     }
     return date.toString();
   }
