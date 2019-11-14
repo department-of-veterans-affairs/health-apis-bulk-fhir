@@ -21,6 +21,10 @@ public class JsonStringConverter<T extends Resource> implements Function<T, Stri
     try {
       return jacksonMapper.writeValueAsString(resource);
     } catch (JsonProcessingException e) {
+      /*
+       * We don't want to fail out for one failure to convert, so we'll eat it
+       * and log and move on.
+       */
       log.error("Failed to JSONify resource: {}", resource, e);
       return null;
     }

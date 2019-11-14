@@ -71,7 +71,7 @@ public class NonDistributedFileWorker implements FileBuildWorker {
     try {
       log.info("Fetching patients: {}", claim);
       List<Patient> patients = dataQuery.requestPatients(claim.page(), claim.count());
-      log.info("OMG SO MANY PATIENTS. THIS {} MANY. THAT'S A BIG BOI MANY.", patients.size());
+      log.info("Found {} patients to bulk process.", patients.size());
       return patients;
     } catch (DataQueryBatchClientException e) {
       log.error("Failed to fetch patients", e);

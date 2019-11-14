@@ -6,6 +6,7 @@ import static org.mockserver.model.HttpRequest.request;
 import static org.mockserver.model.HttpResponse.response;
 
 import gov.va.api.health.autoconfig.configuration.JacksonConfig;
+import gov.va.api.health.bulkfhir.api.internal.ClearHungRequest;
 import gov.va.api.health.bulkfhir.api.internal.PublicationRequest;
 import gov.va.api.health.bulkfhir.api.internal.PublicationStatus;
 import gov.va.api.health.bulkfhir.service.dataquery.client.DataQueryBatchClient.ResourceCount;
@@ -13,6 +14,7 @@ import gov.va.api.health.sentinel.ExpectedResponse;
 import gov.va.api.health.sentinel.categories.Local;
 import io.restassured.http.Header;
 import io.restassured.http.Method;
+import java.time.Duration;
 import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -80,6 +82,13 @@ public class InternalPublicationIT {
           .expect(201);
       assertThat(endpoint.listPublications().expect(200).expectListOf(String.class))
           .containsExactlyInAnyOrder("fullCycle-1", "fullCycle-2");
+      /* Clear Hung Publications :lyin: */
+      endpoint
+          .clearHungPublications(
+              ClearHungRequest.builder().hangTime(Duration.parse("PT87600H")).build())
+          .expect(200);
+      assertThat(endpoint.listPublications().expect(200).expectListOf(String.class))
+          .containsExactlyInAnyOrder("fullCycle-1", "fullCycle-2");
       /* Get details for one */
       PublicationStatus status =
           endpoint.getPublication("fullCycle-1").expect(200).expectValid(PublicationStatus.class);
@@ -95,6 +104,7 @@ public class InternalPublicationIT {
 
   @NoArgsConstructor(staticName = "create")
   static class MockDataQuery implements AutoCloseable {
+
     ClientAndServer dq = startClientAndServer(8090);
 
     @Override
@@ -119,6 +129,18 @@ public class InternalPublicationIT {
 
   @NoArgsConstructor(staticName = "create")
   static class PublicationEndpoint {
+
+    @SneakyThrows
+    ExpectedResponse clearHungPublications(ClearHungRequest clearHungRequest) {
+      return ExpectedResponse.of(
+          TestClients.bulkFhir()
+              .service()
+              .requestSpecification()
+              .header(internalAccessToken())
+              .contentType("application/json")
+              .body(JacksonConfig.createMapper().writeValueAsString(clearHungRequest))
+              .request(Method.POST, url() + "/hung"));
+    }
 
     @SneakyThrows
     ExpectedResponse create(PublicationRequest request) {

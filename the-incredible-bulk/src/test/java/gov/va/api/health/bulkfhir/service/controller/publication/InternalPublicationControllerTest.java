@@ -7,6 +7,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
+import gov.va.api.health.bulkfhir.api.internal.ClearHungRequest;
 import gov.va.api.health.bulkfhir.api.internal.FileBuildResponse;
 import gov.va.api.health.bulkfhir.api.internal.PublicationRequest;
 import gov.va.api.health.bulkfhir.service.controller.publication.PublicationExceptions.PublicationAlreadyExists;
@@ -19,6 +20,7 @@ import gov.va.api.health.bulkfhir.service.filebuilder.FileBuildRequest;
 import gov.va.api.health.bulkfhir.service.filebuilder.FileBuilder;
 import gov.va.api.health.bulkfhir.service.status.StatusEntity;
 import gov.va.api.health.bulkfhir.service.status.StatusRepository;
+import java.time.Duration;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -30,7 +32,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 public class InternalPublicationControllerTest {
 
   @Mock StatusRepository repo;
+
   @Mock PublicationStatusTransformer tx;
+
   @Mock DataQueryBatchClient dq;
   @Mock FileBuilder buildManager;
 
@@ -114,6 +118,24 @@ public class InternalPublicationControllerTest {
   }
 
   @Test
+  void manuallyClearHungPublication() {
+    // Assert that we start with two IN_PROGRESS entities
+    List<StatusEntity> inProgress = PublicationSamples.Entity.create().entitiesInProgress();
+    assertThat(inProgress.size()).isEqualTo(2);
+    when(repo.findByStatusInProgress()).thenReturn(inProgress);
+
+    controller()
+        .manuallyClearHungPublications(
+            ClearHungRequest.builder().hangTime(Duration.parse("PT3H")).build());
+    ArgumentCaptor<List<StatusEntity>> captor = ArgumentCaptor.forClass(List.class);
+    verify(repo).saveAll(captor.capture());
+    /* 3 hours will reset one of the two in progress entity
+     * the start epoch should have been reset to 0 */
+    assertThat(captor.getValue().size()).isEqualTo(1);
+    assertThat(captor.getValue().get(0).buildStartEpoch()).isEqualTo(0);
+  }
+
+  @Test
   void postPublicationCreatesNewPublication() {
     when(repo.countByPublicationId("p")).thenReturn(0);
     when(dq.requestPatientCount())
@@ -123,14 +145,11 @@ public class InternalPublicationControllerTest {
                 .count(333)
                 .maxRecordsPerPage(100)
                 .build());
-
     controller()
         .createPublication(
             PublicationRequest.builder().publicationId("p").recordsPerFile(100).build());
-
     ArgumentCaptor<List<StatusEntity>> args = ArgumentCaptor.forClass(List.class);
     verify(repo).saveAll(args.capture());
-
     var entities = args.getValue();
     assertStatusEntityCreated(entities.get(0), "p", 100, 1, 100, "Patient-0001");
     assertStatusEntityCreated(entities.get(1), "p", 100, 2, 100, "Patient-0002");
@@ -148,7 +167,6 @@ public class InternalPublicationControllerTest {
                 .count(1000)
                 .maxRecordsPerPage(99)
                 .build());
-
     assertThrows(
         PublicationRecordsPerFileTooBig.class,
         () ->

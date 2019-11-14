@@ -8,12 +8,13 @@
     <relativePath/>
   </parent>
   <artifactId>the-incredible-bulk</artifactId>
-  <version>1.0.13-SNAPSHOT</version>
+  <version>1.0.15-SNAPSHOT</version>
   <packaging>jar</packaging>
   <properties>
     <mssql-jdbc.version>7.4.1.jre12</mssql-jdbc.version>
     <argonaut.version>2.0.16</argonaut.version>
     <aws.version>2.10.12</aws.version>
+    <argonaut.version>2.0.18</argonaut.version>
   </properties>
   <dependencyManagement>
     <dependencies>
