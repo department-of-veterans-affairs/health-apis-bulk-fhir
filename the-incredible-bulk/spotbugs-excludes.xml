@@ -1,4 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <FindBugsFilter>
     <!-- Exclusions can be defined here and should include a comment on why the finding can be ignored -->
+    <Match>
+        <!--
+            We are using a generated file name to output the results of the bulk writing.
+            This file writer is only meant for local testing. Deployed systems will use a
+            different implementation that uploads files to S3.
+        -->
+        <Class name="gov.va.api.health.bulkfhir.service.controller.publication.LocalBulkFileWriter"/>
+        <Method name="writeFile"/>
+        <Bug pattern="PATH_TRAVERSAL_IN"/>
+    </Match>
 </FindBugsFilter>

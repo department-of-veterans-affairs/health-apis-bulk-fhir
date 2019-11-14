@@ -24,7 +24,7 @@ public class ClassPathResourceBasedNamesTest {
   @Test
   void loadList() {
     var instance = ClassPathResourceBasedNames.instance();
-    for (int i = 0; i < 32459; i++) {
+    for (int i = 0; i < 32549; i++) {
       assertThat(instance.getName(i)).isNotNull();
     }
   }

@@ -64,7 +64,7 @@ public class PatientAnonymizer implements Function<Patient, Patient> {
    * MBI and MBB are a one of choice. If MBI is provided, anonymization must drop it, and instead
    * provide the MBB corresponding the value.
    */
-  boolean sanitizeMultipleBirthBoolean(Boolean multipleBirthBoolean, Integer multipleBirthInteger) {
+  Boolean sanitizeMultipleBirthBoolean(Boolean multipleBirthBoolean, Integer multipleBirthInteger) {
     if (multipleBirthInteger != null) {
       return multipleBirthInteger > 0;
     }
