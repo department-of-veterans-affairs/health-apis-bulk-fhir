@@ -55,6 +55,7 @@ public class NonDistributedFileWorker implements FileBuildWorker {
               .map(patientAnonymizer())
               .map(jsonStringConverter())
               .filter(Objects::nonNull));
+      releaseClaim(claim);
       return successfulResponse(claim);
     } catch (Exception e) {
       releaseClaim(claim);
@@ -93,11 +94,16 @@ public class NonDistributedFileWorker implements FileBuildWorker {
   }
 
   private void releaseClaim(FileClaim claim) {
-    /*
-     * Exceptions generated here _must_ be handled in the best way possible. Do not let them leak
-     * out.
-     */
-    // e.g. claimant.completeClaim(claim.request());
+    try {
+      claimant.completeClaim(claim.request());
+    } catch (Exception e) {
+      /*
+       * We don't want to explode if we fail to complete the claim for some reason.
+       * Worst case this fails and we may rebuild the file again later
+       * when the hung completion is cleared.
+       */
+      log.error("We failed to mark this claim {} as complete.", claim, e);
+    }
   }
 
   private CompletableFuture<FileBuildResponse> successfulResponse(FileClaim claim) {

@@ -43,6 +43,7 @@ class OptimisticFileClaimantTest {
 
     claimant().completeClaim(FileBuildRequest.builder().publicationId("p").fileId("f").build());
     assertThat(e.buildCompleteEpoch()).isNotZero();
+    verify(repo).saveAndFlush(e);
   }
 
   OptimisticFileClaimant claimant() {

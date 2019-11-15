@@ -64,11 +64,11 @@ public class DefaultPublicationStatusTransformer implements PublicationStatusTra
     void add(BuildStatus status) {
       if (status == BuildStatus.IN_PROGRESS) {
         inProgress++;
-      }
-      if (status == BuildStatus.COMPLETE) {
+      } else if (status == BuildStatus.COMPLETE) {
         completed++;
+      } else {
+        notStarted++;
       }
-      notStarted++;
     }
 
     BuildStatus overallStatus() {

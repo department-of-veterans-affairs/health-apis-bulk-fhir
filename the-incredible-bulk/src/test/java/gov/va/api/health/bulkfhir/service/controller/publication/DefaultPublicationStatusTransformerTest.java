@@ -8,6 +8,46 @@ import org.junit.jupiter.api.Test;
 
 public class DefaultPublicationStatusTransformerTest {
 
+  @Test
+  void addingCompleteToCounterIsMarkedComplete() {
+    Counter counter = new Counter();
+    counter.add(BuildStatus.COMPLETE);
+    assertThat(counter.notStarted).isEqualTo(0);
+    assertThat(counter.inProgress).isEqualTo(0);
+    assertThat(counter.completed).isEqualTo(1);
+    assertThat(counter.overallStatus()).isEqualByComparingTo(BuildStatus.COMPLETE);
+  }
+
+  @Test
+  void addingToCounterKeepsAccurateCount() {
+    Counter counter = new Counter();
+    counter.add(BuildStatus.NOT_STARTED);
+    assertThat(counter.notStarted).isEqualTo(1);
+    assertThat(counter.inProgress).isEqualTo(0);
+    assertThat(counter.completed).isEqualTo(0);
+    assertThat(counter.overallStatus()).isEqualByComparingTo(BuildStatus.NOT_STARTED);
+    counter.add(BuildStatus.NOT_STARTED);
+    assertThat(counter.notStarted).isEqualTo(2);
+    assertThat(counter.inProgress).isEqualTo(0);
+    assertThat(counter.completed).isEqualTo(0);
+    assertThat(counter.overallStatus()).isEqualByComparingTo(BuildStatus.NOT_STARTED);
+    counter.add(BuildStatus.IN_PROGRESS);
+    assertThat(counter.notStarted).isEqualTo(2);
+    assertThat(counter.inProgress).isEqualTo(1);
+    assertThat(counter.completed).isEqualTo(0);
+    assertThat(counter.overallStatus()).isEqualByComparingTo(BuildStatus.IN_PROGRESS);
+    counter.add(BuildStatus.IN_PROGRESS);
+    assertThat(counter.notStarted).isEqualTo(2);
+    assertThat(counter.inProgress).isEqualTo(2);
+    assertThat(counter.completed).isEqualTo(0);
+    assertThat(counter.overallStatus()).isEqualByComparingTo(BuildStatus.IN_PROGRESS);
+    counter.add(BuildStatus.COMPLETE);
+    assertThat(counter.notStarted).isEqualTo(2);
+    assertThat(counter.inProgress).isEqualTo(2);
+    assertThat(counter.completed).isEqualTo(1);
+    assertThat(counter.overallStatus()).isEqualByComparingTo(BuildStatus.IN_PROGRESS);
+  }
+
   private Counter counter(int notStarted, int inProgress, int complete) {
     var c = new Counter();
     c.notStarted = notStarted;
