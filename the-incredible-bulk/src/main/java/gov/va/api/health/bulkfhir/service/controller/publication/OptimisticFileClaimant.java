@@ -38,6 +38,7 @@ public class OptimisticFileClaimant implements FileClaimant {
   public void completeClaim(FileBuildRequest request) {
     StatusEntity entity = findStatusEntity(request);
     entity.buildCompleteEpoch(System.currentTimeMillis());
+    repository.saveAndFlush(entity);
   }
 
   private StatusEntity findStatusEntity(FileBuildRequest request) {

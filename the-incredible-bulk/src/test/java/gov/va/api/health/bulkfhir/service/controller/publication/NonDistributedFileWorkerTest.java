@@ -65,10 +65,12 @@ public class NonDistributedFileWorkerTest {
   void fileWriterIsGivenTheProperDataToWrite() {
     when(dq.requestPatients(3, 1234)).thenReturn(refactorMeToBeReusableSamplePatients());
     when(objectMapper.writeValueAsString(any())).thenReturn("HI");
-    worker().buildFile(claim());
+    FileClaim claim = claim();
+    worker().buildFile(claim);
     ArgumentCaptor<FileClaim> fileClaim = ArgumentCaptor.forClass(FileClaim.class);
     ArgumentCaptor<Stream<String>> resourceStream = ArgumentCaptor.forClass(Stream.class);
     verify(fileWriter).writeFile(fileClaim.capture(), resourceStream.capture());
+    verify(claimant).completeClaim(claim.request());
     assertThat(fileClaim.getValue()).isEqualTo(claim());
     assertThat(resourceStream.getValue().count()).isEqualTo(1);
   }
