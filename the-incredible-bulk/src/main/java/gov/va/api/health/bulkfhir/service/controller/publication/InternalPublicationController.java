@@ -9,6 +9,7 @@ import gov.va.api.health.bulkfhir.api.internal.FileBuildResponse;
 import gov.va.api.health.bulkfhir.api.internal.PublicationRequest;
 import gov.va.api.health.bulkfhir.api.internal.PublicationStatus;
 import gov.va.api.health.bulkfhir.service.dataquery.client.DataQueryBatchClient;
+import gov.va.api.health.bulkfhir.service.filebuilder.FileBuildManager;
 import gov.va.api.health.bulkfhir.service.filebuilder.FileBuildRequest;
 import gov.va.api.health.bulkfhir.service.filebuilder.FileBuilder;
 import gov.va.api.health.bulkfhir.service.status.StatusEntity;
@@ -45,6 +46,8 @@ class InternalPublicationController {
 
   private final FileBuilder fileBuilder;
 
+  private final FileBuildManager fileBuildManager;
+
   private final StatusRepository repository;
 
   private final PublicationStatusTransformer transformer;
@@ -56,10 +59,12 @@ class InternalPublicationController {
       @Autowired FileBuilder fileBuilder,
       @Autowired StatusRepository repository,
       @Autowired DataQueryBatchClient dataQuery,
+      @Autowired FileBuildManager fileBuildManager,
       @Autowired(required = false) PublicationStatusTransformer transformer) {
     this.fileBuilder = fileBuilder;
     this.repository = repository;
     this.dataQuery = dataQuery;
+    this.fileBuildManager = fileBuildManager;
     this.transformer =
         transformer == null ? new DefaultPublicationStatusTransformer() : transformer;
   }
@@ -70,6 +75,19 @@ class InternalPublicationController {
       @PathVariable("id") String publicationId, @PathVariable("fileId") String fileId) {
     return fileBuilder.buildFile(
         FileBuildRequest.builder().publicationId(publicationId).fileId(fileId).build());
+  }
+
+  @PostMapping("any/file/next")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public FileBuildResponse buildNextFile() {
+    FileBuildRequest fileToBuild = fileBuildManager.getNextFileToBuild();
+    if (fileToBuild == null) {
+      /*
+       * There were no files to build.
+       */
+      return null;
+    }
+    return buildFile(fileToBuild.publicationId(), fileToBuild.fileId());
   }
 
   @PostMapping
@@ -120,7 +138,6 @@ class InternalPublicationController {
             .filter(Objects::nonNull)
             .filter(e -> (nowEpoch - e.buildStartEpoch()) > allowedHangTime.toMillis())
             .collect(Collectors.toList());
-
     resetEntities.stream().forEach(s -> s.buildStartEpoch(0));
     repository.saveAll(resetEntities);
   }
