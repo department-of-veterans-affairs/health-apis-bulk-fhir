@@ -28,6 +28,8 @@ delete [--publication-id <id>]
 
 build [--publication-id <id>] --file-id <id>
 
+next
+
 EOF
 exit 1
 }
@@ -111,6 +113,15 @@ doBuild() {
   printResponse "$activity" "$status" $WORK/response.json
 }
 
+doBuildNext() {
+  local status=$(curl -sH Content-Type:application/json \
+    -o $WORK/response.json \
+    -w "%{http_code}" \
+    -X POST \
+    $PUBLICATION_URL/any/file/next)
+  printResponse "$activity" "$status" $WORK/response.json
+}
+
 #======================================================================
 PUBLICATION_URL=http://localhost:8091/internal/publication
 PUBLICATION_ID=synthetic
@@ -144,6 +155,7 @@ COMMAND=$1
 
 case $COMMAND in
   b|build) doBuild;;
+  n|next) doBuildNext;;
   c|create) doCreate;;
   d|delete) doDelete;;
   g|get) doGet;;

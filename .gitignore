@@ -33,3 +33,6 @@ target/
 
 secrets.conf
 *.pem
+
+### Locally generated bulk files ###
+*.ndjson

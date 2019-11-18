@@ -29,7 +29,7 @@ public class OldestFirstFileBuildManager implements FileBuildManager {
         /*
          * No files that haven't been started yet have been found.
          */
-        log.debug("Didn't find any files available to be started.");
+        log.info("Didn't find any files available to be started.");
         return null;
       }
 
@@ -40,6 +40,7 @@ public class OldestFirstFileBuildManager implements FileBuildManager {
 
       StatusEntity fileToBuild = sortedFiles.get(0);
 
+      log.info("Found file to build next {}", fileToBuild);
       return FileBuildRequest.builder()
           .publicationId(fileToBuild.publicationId())
           .fileId(fileToBuild.fileName())
