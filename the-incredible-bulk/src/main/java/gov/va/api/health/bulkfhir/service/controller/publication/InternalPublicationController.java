@@ -20,6 +20,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
+import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
@@ -78,15 +79,17 @@ class InternalPublicationController {
   }
 
   @PostMapping("any/file/next")
-  @ResponseStatus(HttpStatus.NO_CONTENT)
-  public FileBuildResponse buildNextFile() {
+  public FileBuildResponse buildNextFile(HttpServletResponse response) {
     FileBuildRequest fileToBuild = fileBuildManager.getNextFileToBuild();
     if (fileToBuild == null) {
       /*
        * There were no files to build.
        */
+      response.setStatus(HttpStatus.NO_CONTENT.value());
       return null;
     }
+
+    response.setStatus(HttpStatus.ACCEPTED.value());
     return buildFile(fileToBuild.publicationId(), fileToBuild.fileId());
   }
 

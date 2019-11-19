@@ -23,6 +23,7 @@ import gov.va.api.health.bulkfhir.service.status.StatusEntity;
 import gov.va.api.health.bulkfhir.service.status.StatusRepository;
 import java.time.Duration;
 import java.util.List;
+import javax.servlet.http.HttpServletResponse;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -41,6 +42,8 @@ public class InternalPublicationControllerTest {
   @Mock FileBuilder fileBuilder;
 
   @Mock FileBuildManager fileBuildManager;
+
+  @Mock HttpServletResponse httpResponse;
 
   private void assertStatusEntityCreated(
       StatusEntity entity,
@@ -77,7 +80,8 @@ public class InternalPublicationControllerTest {
     var response = FileBuildResponse.builder().publicationId("x").fileId("a").build();
     when(fileBuilder.buildFile(FileBuildRequest.builder().publicationId("x").fileId("a").build()))
         .thenReturn(response);
-    assertThat(controller().buildNextFile()).isSameAs(response);
+    assertThat(controller().buildNextFile(httpResponse)).isSameAs(response);
+    verify(httpResponse).setStatus(202);
     verify(fileBuilder)
         .buildFile(FileBuildRequest.builder().publicationId("x").fileId("a").build());
     verifyNoMoreInteractions(fileBuilder);
@@ -86,7 +90,8 @@ public class InternalPublicationControllerTest {
   @Test
   void buildNextFileDoesNothingWhenManagerDoesNotReturnsFile() {
     when(fileBuildManager.getNextFileToBuild()).thenReturn(null);
-    assertThat(controller().buildNextFile()).isNull();
+    assertThat(controller().buildNextFile(httpResponse)).isNull();
+    verify(httpResponse).setStatus(204);
     verifyNoMoreInteractions(fileBuilder);
   }
 
