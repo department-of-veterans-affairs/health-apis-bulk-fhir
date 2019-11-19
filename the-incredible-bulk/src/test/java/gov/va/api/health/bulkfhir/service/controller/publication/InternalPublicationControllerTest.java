@@ -16,9 +16,9 @@ import gov.va.api.health.bulkfhir.service.controller.publication.PublicationExce
 import gov.va.api.health.bulkfhir.service.controller.publication.PublicationSamples.Api;
 import gov.va.api.health.bulkfhir.service.dataquery.client.DataQueryBatchClient;
 import gov.va.api.health.bulkfhir.service.dataquery.client.DataQueryBatchClient.ResourceCount;
-import gov.va.api.health.bulkfhir.service.filebuilder.FileToBuildManager;
 import gov.va.api.health.bulkfhir.service.filebuilder.FileBuildRequest;
 import gov.va.api.health.bulkfhir.service.filebuilder.FileBuilder;
+import gov.va.api.health.bulkfhir.service.filebuilder.FileToBuildManager;
 import gov.va.api.health.bulkfhir.service.status.StatusEntity;
 import gov.va.api.health.bulkfhir.service.status.StatusRepository;
 import java.time.Duration;
@@ -41,8 +41,7 @@ public class InternalPublicationControllerTest {
 
   @Mock FileBuilder fileBuilder;
 
-  @Mock
-  FileToBuildManager fileToBuildManager;
+  @Mock FileToBuildManager fileToBuildManager;
 
   @Mock HttpServletResponse httpResponse;
 
@@ -102,7 +101,7 @@ public class InternalPublicationControllerTest {
         .dataQuery(dq)
         .transformer(tx)
         .fileBuilder(fileBuilder)
-        .fileBuildManager(fileToBuildManager)
+        .fileToBuildManager(fileToBuildManager)
         .build();
   }
 

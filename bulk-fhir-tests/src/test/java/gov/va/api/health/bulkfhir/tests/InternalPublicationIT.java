@@ -7,6 +7,7 @@ import static org.mockserver.model.HttpResponse.response;
 
 import gov.va.api.health.autoconfig.configuration.JacksonConfig;
 import gov.va.api.health.bulkfhir.api.internal.ClearHungRequest;
+import gov.va.api.health.bulkfhir.api.internal.FileBuildResponse;
 import gov.va.api.health.bulkfhir.api.internal.PublicationRequest;
 import gov.va.api.health.bulkfhir.api.internal.PublicationStatus;
 import gov.va.api.health.bulkfhir.service.dataquery.client.DataQueryBatchClient.ResourceCount;
@@ -93,12 +94,19 @@ public class InternalPublicationIT {
       PublicationStatus status =
           endpoint.getPublication("fullCycle-1").expect(200).expectValid(PublicationStatus.class);
       assertThat(status.publicationId()).isEqualTo("fullCycle-1");
+      /* Build next file */
+      FileBuildResponse fileBuildResponse =
+          endpoint.buildNextFile().expect(202).expectValid(FileBuildResponse.class);
+      assertThat(fileBuildResponse.publicationId()).isEqualTo("fullCycle-1");
+      assertThat(fileBuildResponse.fileId()).isEqualTo("Patient-0001");
       /* Delete both */
       endpoint.deletePublication("fullCycle-1").expect(200);
       assertThat(endpoint.listPublications().expect(200).expectListOf(String.class))
           .containsExactly("fullCycle-2");
       endpoint.deletePublication("fullCycle-2").expect(200);
       assertThat(endpoint.listPublications().expect(200).expectListOf(String.class)).isEmpty();
+      /* Build next file when there are no more files to build */
+      endpoint.buildNextFile().expect(204);
     }
   }
 
@@ -129,6 +137,16 @@ public class InternalPublicationIT {
 
   @NoArgsConstructor(staticName = "create")
   static class PublicationEndpoint {
+
+    ExpectedResponse buildNextFile() {
+      return ExpectedResponse.of(
+          TestClients.bulkFhir()
+              .service()
+              .requestSpecification()
+              .header(internalAccessToken())
+              .contentType("application/json")
+              .request(Method.POST, url() + "/any/file/next"));
+    }
 
     @SneakyThrows
     ExpectedResponse clearHungPublications(ClearHungRequest clearHungRequest) {
