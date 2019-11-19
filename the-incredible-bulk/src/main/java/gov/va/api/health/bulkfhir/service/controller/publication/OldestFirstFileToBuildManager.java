@@ -1,6 +1,7 @@
 package gov.va.api.health.bulkfhir.service.controller.publication;
 
 import gov.va.api.health.bulkfhir.service.filebuilder.FileBuildRequest;
+import gov.va.api.health.bulkfhir.service.filebuilder.FileBuilderExceptions.FindFileToBuildFailed;
 import gov.va.api.health.bulkfhir.service.filebuilder.FileToBuildManager;
 import gov.va.api.health.bulkfhir.service.status.StatusEntity;
 import gov.va.api.health.bulkfhir.service.status.StatusRepository;
@@ -47,7 +48,7 @@ public class OldestFirstFileToBuildManager implements FileToBuildManager {
           .build();
     } catch (Exception e) {
       log.error("Failed to get not yet started publication files.", e);
-      return null;
+      throw new FindFileToBuildFailed(e);
     }
   }
 

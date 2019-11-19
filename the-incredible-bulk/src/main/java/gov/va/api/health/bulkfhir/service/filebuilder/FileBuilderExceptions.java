@@ -26,4 +26,10 @@ public class FileBuilderExceptions {
       super(asMessage(publicationId, fileId), cause);
     }
   }
+
+  public static class FindFileToBuildFailed extends RuntimeException {
+    public FindFileToBuildFailed(Throwable cause) {
+      super("Failed to find publications to build", cause);
+    }
+  }
 }
