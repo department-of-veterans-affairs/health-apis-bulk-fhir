@@ -88,6 +88,16 @@ doDelete() {
   printResponse "$activity" "$status" $WORK/delete.json
 }
 
+doExport() {
+  local status=$(curl -vsH Content-Type:application/json \
+    -H Accept:application/json \
+    -H Prefer:respond-async \
+    -o $WORK/response.json \
+    -w "%{http_code}" \
+    $EXPORT_URL?_outputFormat=ndjson)
+  printResponse "$activity" "$status" $WORK/response.json
+}
+
 doGet() {
   local activity="Getting $PUBLICATION_ID"
   say "$activity"
@@ -124,6 +134,7 @@ doBuildNext() {
 
 #======================================================================
 PUBLICATION_URL=http://localhost:8091/internal/publication
+EXPORT_URL=http://localhost:8091/Patient/\$export
 PUBLICATION_ID=synthetic
 FILE_ID=
 RECORDS_PER_FILE=25
@@ -160,6 +171,7 @@ case $COMMAND in
   d|delete) doDelete;;
   g|get) doGet;;
   l|list) doList;;
+  e|export) doExport;;
   *) usage "Unknown command: $COMMAND";;
 esac
 
