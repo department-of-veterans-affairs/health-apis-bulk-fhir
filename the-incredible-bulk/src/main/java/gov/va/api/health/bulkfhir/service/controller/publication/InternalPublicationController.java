@@ -9,7 +9,7 @@ import gov.va.api.health.bulkfhir.api.internal.FileBuildResponse;
 import gov.va.api.health.bulkfhir.api.internal.PublicationRequest;
 import gov.va.api.health.bulkfhir.api.internal.PublicationStatus;
 import gov.va.api.health.bulkfhir.service.dataquery.client.DataQueryBatchClient;
-import gov.va.api.health.bulkfhir.service.filebuilder.FileBuildManager;
+import gov.va.api.health.bulkfhir.service.filebuilder.FileToBuildManager;
 import gov.va.api.health.bulkfhir.service.filebuilder.FileBuildRequest;
 import gov.va.api.health.bulkfhir.service.filebuilder.FileBuilder;
 import gov.va.api.health.bulkfhir.service.status.StatusEntity;
@@ -47,7 +47,7 @@ class InternalPublicationController {
 
   private final FileBuilder fileBuilder;
 
-  private final FileBuildManager fileBuildManager;
+  private final FileToBuildManager fileToBuildManager;
 
   private final StatusRepository repository;
 
@@ -60,12 +60,12 @@ class InternalPublicationController {
       @Autowired FileBuilder fileBuilder,
       @Autowired StatusRepository repository,
       @Autowired DataQueryBatchClient dataQuery,
-      @Autowired FileBuildManager fileBuildManager,
+      @Autowired FileToBuildManager fileToBuildManager,
       @Autowired(required = false) PublicationStatusTransformer transformer) {
     this.fileBuilder = fileBuilder;
     this.repository = repository;
     this.dataQuery = dataQuery;
-    this.fileBuildManager = fileBuildManager;
+    this.fileToBuildManager = fileToBuildManager;
     this.transformer =
         transformer == null ? new DefaultPublicationStatusTransformer() : transformer;
   }
@@ -80,7 +80,7 @@ class InternalPublicationController {
 
   @PostMapping("any/file/next")
   public FileBuildResponse buildNextFile(HttpServletResponse response) {
-    FileBuildRequest fileToBuild = fileBuildManager.getNextFileToBuild();
+    FileBuildRequest fileToBuild = fileToBuildManager.getNextFileToBuild();
     if (fileToBuild == null) {
       /*
        * There were no files to build.

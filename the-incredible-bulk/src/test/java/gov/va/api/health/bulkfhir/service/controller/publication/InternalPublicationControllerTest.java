@@ -16,7 +16,7 @@ import gov.va.api.health.bulkfhir.service.controller.publication.PublicationExce
 import gov.va.api.health.bulkfhir.service.controller.publication.PublicationSamples.Api;
 import gov.va.api.health.bulkfhir.service.dataquery.client.DataQueryBatchClient;
 import gov.va.api.health.bulkfhir.service.dataquery.client.DataQueryBatchClient.ResourceCount;
-import gov.va.api.health.bulkfhir.service.filebuilder.FileBuildManager;
+import gov.va.api.health.bulkfhir.service.filebuilder.FileToBuildManager;
 import gov.va.api.health.bulkfhir.service.filebuilder.FileBuildRequest;
 import gov.va.api.health.bulkfhir.service.filebuilder.FileBuilder;
 import gov.va.api.health.bulkfhir.service.status.StatusEntity;
@@ -41,7 +41,8 @@ public class InternalPublicationControllerTest {
 
   @Mock FileBuilder fileBuilder;
 
-  @Mock FileBuildManager fileBuildManager;
+  @Mock
+  FileToBuildManager fileToBuildManager;
 
   @Mock HttpServletResponse httpResponse;
 
@@ -75,7 +76,7 @@ public class InternalPublicationControllerTest {
 
   @Test
   void buildNextFileCallsFileBuilderWhenManagerReturnsFile() {
-    when(fileBuildManager.getNextFileToBuild())
+    when(fileToBuildManager.getNextFileToBuild())
         .thenReturn(FileBuildRequest.builder().publicationId("x").fileId("a").build());
     var response = FileBuildResponse.builder().publicationId("x").fileId("a").build();
     when(fileBuilder.buildFile(FileBuildRequest.builder().publicationId("x").fileId("a").build()))
@@ -89,7 +90,7 @@ public class InternalPublicationControllerTest {
 
   @Test
   void buildNextFileDoesNothingWhenManagerDoesNotReturnsFile() {
-    when(fileBuildManager.getNextFileToBuild()).thenReturn(null);
+    when(fileToBuildManager.getNextFileToBuild()).thenReturn(null);
     assertThat(controller().buildNextFile(httpResponse)).isNull();
     verify(httpResponse).setStatus(204);
     verifyNoMoreInteractions(fileBuilder);
@@ -101,7 +102,7 @@ public class InternalPublicationControllerTest {
         .dataQuery(dq)
         .transformer(tx)
         .fileBuilder(fileBuilder)
-        .fileBuildManager(fileBuildManager)
+        .fileBuildManager(fileToBuildManager)
         .build();
   }
 

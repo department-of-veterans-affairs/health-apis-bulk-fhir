@@ -1,6 +1,6 @@
 package gov.va.api.health.bulkfhir.service.controller.publication;
 
-import gov.va.api.health.bulkfhir.service.filebuilder.FileBuildManager;
+import gov.va.api.health.bulkfhir.service.filebuilder.FileToBuildManager;
 import gov.va.api.health.bulkfhir.service.filebuilder.FileBuildRequest;
 import gov.va.api.health.bulkfhir.service.status.StatusEntity;
 import gov.va.api.health.bulkfhir.service.status.StatusRepository;
@@ -17,7 +17,7 @@ import org.springframework.stereotype.Service;
 @Slf4j
 @Builder
 @AllArgsConstructor(onConstructor = @__({@Autowired}))
-public class OldestFirstFileBuildManager implements FileBuildManager {
+public class OldestFirstFileToBuildManager implements FileToBuildManager {
 
   private final StatusRepository repository;
 

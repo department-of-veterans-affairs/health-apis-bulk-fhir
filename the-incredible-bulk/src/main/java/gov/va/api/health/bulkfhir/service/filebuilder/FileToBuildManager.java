@@ -1,7 +1,7 @@
 package gov.va.api.health.bulkfhir.service.filebuilder;
 
 /** This interface provides a manager for distributing file assignments to build publications. */
-public interface FileBuildManager {
+public interface FileToBuildManager {
 
   /**
    * Get the next file that should be built.

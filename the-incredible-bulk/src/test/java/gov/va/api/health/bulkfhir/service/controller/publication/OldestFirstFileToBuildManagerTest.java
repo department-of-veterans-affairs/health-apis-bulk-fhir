@@ -15,7 +15,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-public class OldestFirstFileBuildManagerTest {
+public class OldestFirstFileToBuildManagerTest {
 
   @Mock StatusRepository repository;
 
@@ -62,8 +62,8 @@ public class OldestFirstFileBuildManagerTest {
             .build());
   }
 
-  OldestFirstFileBuildManager buildManager() {
-    return OldestFirstFileBuildManager.builder().repository(repository).build();
+  OldestFirstFileToBuildManager buildManager() {
+    return OldestFirstFileToBuildManager.builder().repository(repository).build();
   }
 
   @Test
