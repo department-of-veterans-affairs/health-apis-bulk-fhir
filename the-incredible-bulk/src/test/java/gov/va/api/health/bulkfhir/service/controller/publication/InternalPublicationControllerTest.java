@@ -18,10 +18,12 @@ import gov.va.api.health.bulkfhir.service.dataquery.client.DataQueryBatchClient;
 import gov.va.api.health.bulkfhir.service.dataquery.client.DataQueryBatchClient.ResourceCount;
 import gov.va.api.health.bulkfhir.service.filebuilder.FileBuildRequest;
 import gov.va.api.health.bulkfhir.service.filebuilder.FileBuilder;
+import gov.va.api.health.bulkfhir.service.filebuilder.FileToBuildManager;
 import gov.va.api.health.bulkfhir.service.status.StatusEntity;
 import gov.va.api.health.bulkfhir.service.status.StatusRepository;
 import java.time.Duration;
 import java.util.List;
+import javax.servlet.http.HttpServletResponse;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -36,7 +38,12 @@ public class InternalPublicationControllerTest {
   @Mock PublicationStatusTransformer tx;
 
   @Mock DataQueryBatchClient dq;
-  @Mock FileBuilder buildManager;
+
+  @Mock FileBuilder fileBuilder;
+
+  @Mock FileToBuildManager fileToBuildManager;
+
+  @Mock HttpServletResponse httpResponse;
 
   private void assertStatusEntityCreated(
       StatusEntity entity,
@@ -58,12 +65,34 @@ public class InternalPublicationControllerTest {
   @Test
   void buildForwardsCallsToBuildManager() {
     var response = FileBuildResponse.builder().publicationId("x").fileId("a").build();
-    when(buildManager.buildFile(FileBuildRequest.builder().publicationId("x").fileId("a").build()))
+    when(fileBuilder.buildFile(FileBuildRequest.builder().publicationId("x").fileId("a").build()))
         .thenReturn(response);
     assertThat(controller().buildFile("x", "a")).isSameAs(response);
-    verify(buildManager)
+    verify(fileBuilder)
         .buildFile(FileBuildRequest.builder().publicationId("x").fileId("a").build());
-    verifyNoMoreInteractions(buildManager);
+    verifyNoMoreInteractions(fileBuilder);
+  }
+
+  @Test
+  void buildNextFileCallsFileBuilderWhenManagerReturnsFile() {
+    when(fileToBuildManager.getNextFileToBuild())
+        .thenReturn(FileBuildRequest.builder().publicationId("x").fileId("a").build());
+    var response = FileBuildResponse.builder().publicationId("x").fileId("a").build();
+    when(fileBuilder.buildFile(FileBuildRequest.builder().publicationId("x").fileId("a").build()))
+        .thenReturn(response);
+    assertThat(controller().buildNextFile(httpResponse)).isSameAs(response);
+    verify(httpResponse).setStatus(202);
+    verify(fileBuilder)
+        .buildFile(FileBuildRequest.builder().publicationId("x").fileId("a").build());
+    verifyNoMoreInteractions(fileBuilder);
+  }
+
+  @Test
+  void buildNextFileDoesNothingWhenManagerDoesNotReturnsFile() {
+    when(fileToBuildManager.getNextFileToBuild()).thenReturn(null);
+    assertThat(controller().buildNextFile(httpResponse)).isNull();
+    verify(httpResponse).setStatus(204);
+    verifyNoMoreInteractions(fileBuilder);
   }
 
   InternalPublicationController controller() {
@@ -71,7 +100,8 @@ public class InternalPublicationControllerTest {
         .repository(repo)
         .dataQuery(dq)
         .transformer(tx)
-        .fileBuilder(buildManager)
+        .fileBuilder(fileBuilder)
+        .fileToBuildManager(fileToBuildManager)
         .build();
   }
 
@@ -123,7 +153,6 @@ public class InternalPublicationControllerTest {
     List<StatusEntity> inProgress = PublicationSamples.Entity.create().entitiesInProgress();
     assertThat(inProgress.size()).isEqualTo(2);
     when(repo.findByStatusInProgress()).thenReturn(inProgress);
-
     controller()
         .manuallyClearHungPublications(
             ClearHungRequest.builder().hangTime(Duration.parse("PT3H")).build());

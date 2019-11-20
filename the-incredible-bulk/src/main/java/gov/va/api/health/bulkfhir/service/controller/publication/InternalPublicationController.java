@@ -11,6 +11,7 @@ import gov.va.api.health.bulkfhir.api.internal.PublicationStatus;
 import gov.va.api.health.bulkfhir.service.dataquery.client.DataQueryBatchClient;
 import gov.va.api.health.bulkfhir.service.filebuilder.FileBuildRequest;
 import gov.va.api.health.bulkfhir.service.filebuilder.FileBuilder;
+import gov.va.api.health.bulkfhir.service.filebuilder.FileToBuildManager;
 import gov.va.api.health.bulkfhir.service.status.StatusEntity;
 import gov.va.api.health.bulkfhir.service.status.StatusRepository;
 import java.time.Duration;
@@ -19,6 +20,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
+import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
@@ -45,6 +47,8 @@ class InternalPublicationController {
 
   private final FileBuilder fileBuilder;
 
+  private final FileToBuildManager fileToBuildManager;
+
   private final StatusRepository repository;
 
   private final PublicationStatusTransformer transformer;
@@ -56,10 +60,12 @@ class InternalPublicationController {
       @Autowired FileBuilder fileBuilder,
       @Autowired StatusRepository repository,
       @Autowired DataQueryBatchClient dataQuery,
+      @Autowired FileToBuildManager fileToBuildManager,
       @Autowired(required = false) PublicationStatusTransformer transformer) {
     this.fileBuilder = fileBuilder;
     this.repository = repository;
     this.dataQuery = dataQuery;
+    this.fileToBuildManager = fileToBuildManager;
     this.transformer =
         transformer == null ? new DefaultPublicationStatusTransformer() : transformer;
   }
@@ -70,6 +76,21 @@ class InternalPublicationController {
       @PathVariable("id") String publicationId, @PathVariable("fileId") String fileId) {
     return fileBuilder.buildFile(
         FileBuildRequest.builder().publicationId(publicationId).fileId(fileId).build());
+  }
+
+  @PostMapping("any/file/next")
+  public FileBuildResponse buildNextFile(HttpServletResponse response) {
+    FileBuildRequest fileToBuild = fileToBuildManager.getNextFileToBuild();
+    if (fileToBuild == null) {
+      /*
+       * There were no files to build.
+       */
+      response.setStatus(HttpStatus.NO_CONTENT.value());
+      return null;
+    }
+
+    response.setStatus(HttpStatus.ACCEPTED.value());
+    return buildFile(fileToBuild.publicationId(), fileToBuild.fileId());
   }
 
   @PostMapping
@@ -120,7 +141,6 @@ class InternalPublicationController {
             .filter(Objects::nonNull)
             .filter(e -> (nowEpoch - e.buildStartEpoch()) > allowedHangTime.toMillis())
             .collect(Collectors.toList());
-
     resetEntities.stream().forEach(s -> s.buildStartEpoch(0));
     repository.saveAll(resetEntities);
   }

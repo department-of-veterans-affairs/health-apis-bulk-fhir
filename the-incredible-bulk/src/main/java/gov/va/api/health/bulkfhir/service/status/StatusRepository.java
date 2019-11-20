@@ -19,6 +19,9 @@ public interface StatusRepository extends JpaRepository<StatusEntity, String> {
   @Query("select s from StatusEntity s where s.buildCompleteEpoch = 0 and s.buildStartEpoch > 0")
   List<StatusEntity> findByStatusInProgress();
 
+  @Query("select s from StatusEntity s where s.buildCompleteEpoch = 0 and s.buildStartEpoch = 0")
+  List<StatusEntity> findByStatusNotStarted();
+
   @Query("select distinct s.publicationId from StatusEntity s")
   List<String> findDistinctPublicationIds();
 }
