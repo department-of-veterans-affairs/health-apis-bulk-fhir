@@ -10,11 +10,13 @@ import gov.va.api.health.bulkfhir.service.controller.publication.DefaultPublicat
 import gov.va.api.health.bulkfhir.service.status.StatusEntity;
 import gov.va.api.health.bulkfhir.service.status.StatusRepository;
 import gov.va.api.health.dstu2.api.resources.OperationOutcome;
+import gov.va.api.health.ids.api.IdentityService;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import javax.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -26,11 +28,16 @@ public class BulkPatientControllerTest {
 
   @Mock StatusRepository repo;
 
+  @Mock HttpServletRequest request;
+
+  @Mock IdentityService identityService;
+
   BulkPatientController controller() {
     return BulkPatientController.builder()
         .repository(repo)
         .baseUrl("http://fake-va.gov")
         .bulkStatusPath("/STATUSNOW")
+        .identityService(identityService)
         .transformer(new DefaultPublicationStatusTransformer())
         .build();
   }
@@ -50,10 +57,13 @@ public class BulkPatientControllerTest {
                     .buildStartEpoch(now)
                     .recordsPerFile(10)
                     .build()));
+    when(request.getRequestURL())
+        .thenReturn(new StringBuffer("http://fake-va.gov/Patient/$export"));
+    when(request.getQueryString()).thenReturn("_outputFormat=ndjson");
     Map<String, String> headers = new HashMap<>();
     headers.put("accept", "application/fhir+json");
     headers.put("prefer", "respond-async");
-    ResponseEntity<OperationOutcome> response = controller().export(headers, "ndjson");
+    ResponseEntity<OperationOutcome> response = controller().export(request, headers, "ndjson");
     verify(repo, never()).findByPublicationId("2");
     assertThat(response.getStatusCodeValue()).isEqualTo(202);
     assertThat(response.getBody()).isNull();
@@ -87,10 +97,13 @@ public class BulkPatientControllerTest {
                     .buildStartEpoch(now)
                     .recordsPerFile(10)
                     .build()));
+    when(request.getRequestURL())
+        .thenReturn(new StringBuffer("http://fake-va.gov/Patient/$export"));
+    when(request.getQueryString()).thenReturn("_outputFormat=ndjson");
     Map<String, String> headers = new HashMap<>();
     headers.put("accept", "application/fhir+json");
     headers.put("prefer", "respond-async");
-    ResponseEntity<OperationOutcome> response = controller().export(headers, "ndjson");
+    ResponseEntity<OperationOutcome> response = controller().export(request, headers, "ndjson");
     assertThat(response.getStatusCodeValue()).isEqualTo(202);
     assertThat(response.getBody()).isNull();
     List<String> contentLocationHeaders = response.getHeaders().get("Content-Location");
@@ -119,7 +132,7 @@ public class BulkPatientControllerTest {
     Map<String, String> headers = new HashMap<>();
     headers.put("accept", "application/fhir+json");
     headers.put("prefer", "respond-async");
-    ResponseEntity<OperationOutcome> response = controller().export(headers, "ndjson");
+    ResponseEntity<OperationOutcome> response = controller().export(request, headers, "ndjson");
     assertThat(response.getStatusCodeValue()).isEqualTo(503);
     assertThat(response.getBody()).isNotNull();
     assertThat(response.getBody().text()).isNotNull();
@@ -132,7 +145,7 @@ public class BulkPatientControllerTest {
     Map<String, String> headers = new HashMap<>();
     headers.put("accept", "application/fhir+json");
     headers.put("prefer", "respond-async");
-    ResponseEntity<OperationOutcome> response = controller().export(headers, "ndjson");
+    ResponseEntity<OperationOutcome> response = controller().export(request, headers, "ndjson");
     assertThat(response.getStatusCodeValue()).isEqualTo(503);
     assertThat(response.getBody()).isNotNull();
     assertThat(response.getBody().text()).isNotNull();
@@ -144,7 +157,8 @@ public class BulkPatientControllerTest {
     Map<String, String> headers = new HashMap<>();
     headers.put("accept", "y u no like me");
     headers.put("prefer", "respond-async");
-    ResponseEntity<OperationOutcome> response = controller().export(headers, "application/ndjson");
+    ResponseEntity<OperationOutcome> response =
+        controller().export(request, headers, "application/ndjson");
     assertThat(response.getStatusCodeValue()).isEqualTo(400);
   }
 
@@ -153,7 +167,7 @@ public class BulkPatientControllerTest {
     Map<String, String> headers = new HashMap<>();
     headers.put("accept", "application/fhir+json");
     headers.put("prefer", "respond-async");
-    ResponseEntity<OperationOutcome> response = controller().export(headers, "IMFAKE");
+    ResponseEntity<OperationOutcome> response = controller().export(request, headers, "IMFAKE");
     assertThat(response.getStatusCodeValue()).isEqualTo(400);
   }
 
@@ -163,7 +177,7 @@ public class BulkPatientControllerTest {
     headers.put("accept", "application/json");
     headers.put("prefer", "callmemaybe");
     ResponseEntity<OperationOutcome> response =
-        controller().export(headers, "application/fhir+ndjson");
+        controller().export(request, headers, "application/fhir+ndjson");
     assertThat(response.getStatusCodeValue()).isEqualTo(400);
   }
 
@@ -171,7 +185,8 @@ public class BulkPatientControllerTest {
   void exportWithMissingAcceptHeaderReturnsBadRequest() {
     Map<String, String> headers = new HashMap<>();
     headers.put("prefer", "respond-async");
-    ResponseEntity<OperationOutcome> response = controller().export(headers, "application/ndjson");
+    ResponseEntity<OperationOutcome> response =
+        controller().export(request, headers, "application/ndjson");
     assertThat(response.getStatusCodeValue()).isEqualTo(400);
   }
 
@@ -179,7 +194,7 @@ public class BulkPatientControllerTest {
   void exportWithMissingPreferHeaderReturnsBadRequest() {
     Map<String, String> headers = new HashMap<>();
     headers.put("accept", "application/json");
-    ResponseEntity<OperationOutcome> response = controller().export(headers, "ndjson");
+    ResponseEntity<OperationOutcome> response = controller().export(request, headers, "ndjson");
     assertThat(response.getStatusCodeValue()).isEqualTo(400);
   }
 }

@@ -8,10 +8,14 @@ import gov.va.api.health.bulkfhir.service.status.StatusEntity;
 import gov.va.api.health.bulkfhir.service.status.StatusRepository;
 import gov.va.api.health.dstu2.api.elements.Narrative;
 import gov.va.api.health.dstu2.api.resources.OperationOutcome;
+import gov.va.api.health.ids.api.IdentityService;
+import gov.va.api.health.ids.api.Registration;
+import gov.va.api.health.ids.api.ResourceIdentity;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import javax.servlet.http.HttpServletRequest;
 import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,7 +37,7 @@ import org.springframework.web.bind.annotation.RestController;
   value = {"Patient"},
   produces = {"application/json"}
 )
-public class BulkPatientController {
+class BulkPatientController {
 
   /** The list of valid output formats for an $export request. */
   private static List<String> VALID_OUTPUT_FORMATS =
@@ -49,17 +53,44 @@ public class BulkPatientController {
 
   private final String bulkStatusUrl;
 
+  private IdentityService identityService;
+
   @Builder
   BulkPatientController(
       @Value("${dataquery.url}") String baseUrl,
       @Value("${dataquery.bulk-status-path:/services/fhir/v0/dstu2/bulk}") String bulkStatusPath,
       @Autowired StatusRepository repository,
+      @Autowired IdentityService identityService,
       @Autowired(required = false) PublicationStatusTransformer transformer) {
     // TODO double check this URL is correct
     this.bulkStatusUrl = baseUrl + bulkStatusPath;
     this.repository = repository;
+    this.identityService = identityService;
     this.transformer =
         transformer == null ? new DefaultPublicationStatusTransformer() : transformer;
+  }
+
+  /**
+   * Build the OperationOutcome when no publications are ready to be distributed.
+   *
+   * @return An OperationOutcome indicating this call should be tried again later.
+   */
+  private OperationOutcome buildNotReadyOperationOutcome() {
+    return OperationOutcome.builder()
+        .id(UUID.randomUUID().toString())
+        .resourceType("OperationOutcome")
+        .text(
+            Narrative.builder()
+                .status(Narrative.NarrativeStatus.additional)
+                .div("<div>No publications available, try again later.</div>")
+                .build())
+        .issue(
+            Collections.singletonList(
+                OperationOutcome.Issue.builder()
+                    .severity(OperationOutcome.Issue.IssueSeverity.information)
+                    .code("incomplete")
+                    .build()))
+        .build();
   }
 
   /**
@@ -72,37 +103,31 @@ public class BulkPatientController {
    */
   @GetMapping("$export")
   public ResponseEntity<OperationOutcome> export(
+      HttpServletRequest request,
       @RequestHeader Map<String, String> headers,
       @RequestParam(name = "_outputFormat") String outputFormat) {
     if (isRequestInvalid(headers, outputFormat)) {
       log.info("Invalid bulk export request received");
       return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
     }
-
     PublicationStatus completedPublication = getMostRecentCompletedPublication();
-
     if (completedPublication == null) {
-      OperationOutcome operationOutcome =
-          OperationOutcome.builder()
-              .id(UUID.randomUUID().toString())
-              .resourceType("OperationOutcome")
-              .text(
-                  Narrative.builder()
-                      .status(Narrative.NarrativeStatus.additional)
-                      .div("<div>No publications available, try again later.</div>")
-                      .build())
-              .issue(
-                  Collections.singletonList(
-                      OperationOutcome.Issue.builder()
-                          .severity(OperationOutcome.Issue.IssueSeverity.information)
-                          .code("incomplete")
-                          .build()))
-              .build();
       log.info("No completed publications found.");
-      return new ResponseEntity<>(operationOutcome, HttpStatus.SERVICE_UNAVAILABLE);
+      return new ResponseEntity<>(buildNotReadyOperationOutcome(), HttpStatus.SERVICE_UNAVAILABLE);
     } else {
       HttpHeaders responseHeaders = new HttpHeaders();
-      // TODO encode something here with the publication id
+      String requestUrl =
+          request.getRequestURL().append("?").append(request.getQueryString()).toString();
+      List<Registration> encoded =
+          identityService.register(
+              List.of(
+                  ResourceIdentity.builder()
+                      .identifier(completedPublication.publicationId())
+                      .resource(requestUrl)
+                      .system("bulk")
+                      .build()));
+      log.info("ENCODED URL + PUB {} / {}", encoded.get(0).toString(), encoded.get(0).uuid());
+      // TODO encode requestUrl + publicationId
       responseHeaders.add(
           "Content-Location", bulkStatusUrl + "/" + completedPublication.publicationId());
       return new ResponseEntity<>(responseHeaders, HttpStatus.ACCEPTED);
@@ -117,7 +142,6 @@ public class BulkPatientController {
    */
   private PublicationStatus getMostRecentCompletedPublication() {
     List<String> publicationIdsByCreation = repository.findDistinctPublicationIds();
-
     for (String publication : publicationIdsByCreation) {
       List<StatusEntity> entities = repository.findByPublicationId(publication);
       PublicationStatus status = transformer.apply(entities);
