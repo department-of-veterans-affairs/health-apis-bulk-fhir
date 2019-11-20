@@ -53,16 +53,16 @@ class BulkPatientController {
 
   private final String bulkStatusUrl;
 
-  private IdentityService identityService;
+  private final IdentityService identityService;
 
   @Builder
   BulkPatientController(
-      @Value("${dataquery.url}") String baseUrl,
-      @Value("${dataquery.bulk-status-path:/services/fhir/v0/dstu2/bulk}") String bulkStatusPath,
+      @Value("${incrediblebulk.url}") String baseUrl,
+      @Value("${incrediblebulk.bulk-status-path:/services/fhir/v0/dstu2/bulk}")
+          String bulkStatusPath,
       @Autowired StatusRepository repository,
       @Autowired IdentityService identityService,
       @Autowired(required = false) PublicationStatusTransformer transformer) {
-    // TODO double check this URL is correct
     this.bulkStatusUrl = baseUrl + bulkStatusPath;
     this.repository = repository;
     this.identityService = identityService;
@@ -94,6 +94,33 @@ class BulkPatientController {
   }
 
   /**
+   * Encode the original request along with the publication id.
+   *
+   * @param request The http request
+   * @param completedPublication The completed publication
+   * @return The encoded string for the request and publication id
+   */
+  private String encodeRequestAndPublicationName(
+      HttpServletRequest request, PublicationStatus completedPublication) {
+    String requestUrl = request.getRequestURI() + "?" + request.getQueryString();
+    List<Registration> encoded =
+        identityService.register(
+            List.of(
+                ResourceIdentity.builder()
+                    .identifier(completedPublication.publicationId())
+                    .resource(requestUrl)
+                    .system("BULK")
+                    .build()));
+    if (encoded.isEmpty()) {
+      /*
+       * Somehow no results came back from encoding, just return the publication id
+       */
+      return completedPublication.publicationId();
+    }
+    return encoded.get(0).uuid();
+  }
+
+  /**
    * An informational endpoint that will provide the status URL for the most recent completed
    * publication.
    *
@@ -116,20 +143,9 @@ class BulkPatientController {
       return new ResponseEntity<>(buildNotReadyOperationOutcome(), HttpStatus.SERVICE_UNAVAILABLE);
     } else {
       HttpHeaders responseHeaders = new HttpHeaders();
-      String requestUrl =
-          request.getRequestURL().append("?").append(request.getQueryString()).toString();
-      List<Registration> encoded =
-          identityService.register(
-              List.of(
-                  ResourceIdentity.builder()
-                      .identifier(completedPublication.publicationId())
-                      .resource(requestUrl)
-                      .system("bulk")
-                      .build()));
-      log.info("ENCODED URL + PUB {} / {}", encoded.get(0).toString(), encoded.get(0).uuid());
-      // TODO encode requestUrl + publicationId
       responseHeaders.add(
-          "Content-Location", bulkStatusUrl + "/" + completedPublication.publicationId());
+          "Content-Location",
+          bulkStatusUrl + "/" + encodeRequestAndPublicationName(request, completedPublication));
       return new ResponseEntity<>(responseHeaders, HttpStatus.ACCEPTED);
     }
   }

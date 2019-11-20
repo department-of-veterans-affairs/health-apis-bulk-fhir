@@ -2,6 +2,7 @@ package gov.va.api.health.bulkfhir.service.controller.patient;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -11,6 +12,7 @@ import gov.va.api.health.bulkfhir.service.status.StatusEntity;
 import gov.va.api.health.bulkfhir.service.status.StatusRepository;
 import gov.va.api.health.dstu2.api.resources.OperationOutcome;
 import gov.va.api.health.ids.api.IdentityService;
+import gov.va.api.health.ids.api.Registration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -57,9 +59,10 @@ public class BulkPatientControllerTest {
                     .buildStartEpoch(now)
                     .recordsPerFile(10)
                     .build()));
-    when(request.getRequestURL())
-        .thenReturn(new StringBuffer("http://fake-va.gov/Patient/$export"));
+    when(request.getRequestURI()).thenReturn("/Patient/$export");
     when(request.getQueryString()).thenReturn("_outputFormat=ndjson");
+    when(identityService.register(anyList()))
+        .thenReturn(List.of(Registration.builder().uuid("ZZZ").build()));
     Map<String, String> headers = new HashMap<>();
     headers.put("accept", "application/fhir+json");
     headers.put("prefer", "respond-async");
@@ -70,8 +73,7 @@ public class BulkPatientControllerTest {
     List<String> contentLocationHeaders = response.getHeaders().get("Content-Location");
     assertThat(contentLocationHeaders).isNotNull();
     assertThat(contentLocationHeaders.size()).isEqualTo(1);
-    assertThat(contentLocationHeaders.get(0)).isEqualTo("http://fake-va.gov/STATUSNOW/1");
-    // TODO validate the actual value of Content-Location
+    assertThat(contentLocationHeaders.get(0)).isEqualTo("http://fake-va.gov/STATUSNOW/ZZZ");
   }
 
   @Test
@@ -97,9 +99,48 @@ public class BulkPatientControllerTest {
                     .buildStartEpoch(now)
                     .recordsPerFile(10)
                     .build()));
-    when(request.getRequestURL())
-        .thenReturn(new StringBuffer("http://fake-va.gov/Patient/$export"));
+    when(request.getRequestURI()).thenReturn("/Patient/$export");
     when(request.getQueryString()).thenReturn("_outputFormat=ndjson");
+    when(identityService.register(anyList()))
+        .thenReturn(List.of(Registration.builder().uuid("XXX").build()));
+    Map<String, String> headers = new HashMap<>();
+    headers.put("accept", "application/fhir+json");
+    headers.put("prefer", "respond-async");
+    ResponseEntity<OperationOutcome> response = controller().export(request, headers, "ndjson");
+    assertThat(response.getStatusCodeValue()).isEqualTo(202);
+    assertThat(response.getBody()).isNull();
+    List<String> contentLocationHeaders = response.getHeaders().get("Content-Location");
+    assertThat(contentLocationHeaders).isNotNull();
+    assertThat(contentLocationHeaders.size()).isEqualTo(1);
+    assertThat(contentLocationHeaders.get(0)).isEqualTo("http://fake-va.gov/STATUSNOW/XXX");
+  }
+
+  @Test
+  void exportReturnsContentLocationHeaderWhenEncoderDoesntReturnData() {
+    when(repo.findDistinctPublicationIds()).thenReturn(List.of("1", "2"));
+    long now = Instant.now().toEpochMilli();
+    when(repo.findByPublicationId("2"))
+        .thenReturn(
+            List.of(
+                StatusEntity.builder()
+                    .publicationId("2")
+                    .publicationEpoch(now)
+                    .buildCompleteEpoch(now)
+                    .buildStartEpoch(now)
+                    .recordsPerFile(10)
+                    .build()));
+    when(repo.findByPublicationId("1"))
+        .thenReturn(
+            List.of(
+                StatusEntity.builder()
+                    .publicationId("1")
+                    .publicationEpoch(now)
+                    .buildStartEpoch(now)
+                    .recordsPerFile(10)
+                    .build()));
+    when(request.getRequestURI()).thenReturn("/Patient/$export");
+    when(request.getQueryString()).thenReturn("_outputFormat=ndjson");
+    when(identityService.register(anyList())).thenReturn(List.of());
     Map<String, String> headers = new HashMap<>();
     headers.put("accept", "application/fhir+json");
     headers.put("prefer", "respond-async");
@@ -110,7 +151,6 @@ public class BulkPatientControllerTest {
     assertThat(contentLocationHeaders).isNotNull();
     assertThat(contentLocationHeaders.size()).isEqualTo(1);
     assertThat(contentLocationHeaders.get(0)).isEqualTo("http://fake-va.gov/STATUSNOW/2");
-    // TODO validate the actual value of Content-Location
   }
 
   @Test

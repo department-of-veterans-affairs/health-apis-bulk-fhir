@@ -9,7 +9,7 @@ public interface StatusRepository extends JpaRepository<StatusEntity, String> {
 
   String DISTINCT_PUBLICATION_IDS_BY_CREATION_TIME_DESC_QUERY =
       "select s.publicationId from StatusEntity s"
-          + " group by s.publicationId order by s.publicationEpoch desc";
+          + " group by s.publicationId order by max(s.publicationEpoch) desc";
 
   int countByPublicationId(String publicationId);
 
