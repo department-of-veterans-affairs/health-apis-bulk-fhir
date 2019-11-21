@@ -14,7 +14,7 @@
     <mssql-jdbc.version>7.4.1.jre12</mssql-jdbc.version>
     <aws.version>2.10.12</aws.version>
     <argonaut.version>2.0.18</argonaut.version>
-    <health-apis-ids.version>2.1.4-SNAPSHOT</health-apis-ids.version>
+    <health-apis-ids.version>2.1.4</health-apis-ids.version>
   </properties>
   <dependencyManagement>
     <dependencies>
