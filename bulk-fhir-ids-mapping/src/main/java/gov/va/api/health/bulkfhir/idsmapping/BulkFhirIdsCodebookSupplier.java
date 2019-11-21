@@ -4,7 +4,7 @@ import gov.va.api.health.ids.client.EncryptingIdEncoder.Codebook;
 import gov.va.api.health.ids.client.EncryptingIdEncoder.Codebook.Mapping;
 import gov.va.api.health.ids.client.EncryptingIdEncoder.CodebookSupplier;
 
-/** Codebook mapping for BulkFhir encoding */
+/** Codebook mapping for BulkFhir encoding. */
 public class BulkFhirIdsCodebookSupplier implements CodebookSupplier {
 
   @Override
