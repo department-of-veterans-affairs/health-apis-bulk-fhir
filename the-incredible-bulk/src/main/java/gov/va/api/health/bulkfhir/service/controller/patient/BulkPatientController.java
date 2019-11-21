@@ -57,8 +57,8 @@ class BulkPatientController {
 
   @Builder
   BulkPatientController(
-      @Value("${incrediblebulk.url}") String baseUrl,
-      @Value("${incrediblebulk.bulk-status-path:/services/fhir/v0/dstu2/bulk}")
+      @Value("${incrediblebulk.public-url}") String baseUrl,
+      @Value("${incrediblebulk.public-bulk-status-path:/services/fhir/v0/dstu2/bulk}")
           String bulkStatusPath,
       @Autowired StatusRepository repository,
       @Autowired IdentityService identityService,
@@ -102,7 +102,10 @@ class BulkPatientController {
    */
   private String encodeRequestAndPublicationName(
       HttpServletRequest request, PublicationStatus completedPublication) {
-    String requestUrl = request.getRequestURI() + "?" + request.getQueryString();
+    String requestUrl = request.getRequestURI();
+    if (request.getQueryString() != null) {
+      requestUrl += "?" + request.getQueryString();
+    }
     List<Registration> encoded =
         identityService.register(
             List.of(
@@ -132,7 +135,7 @@ class BulkPatientController {
   public ResponseEntity<OperationOutcome> export(
       HttpServletRequest request,
       @RequestHeader Map<String, String> headers,
-      @RequestParam(name = "_outputFormat") String outputFormat) {
+      @RequestParam(name = "_outputFormat", required = false) String outputFormat) {
     if (isRequestInvalid(headers, outputFormat)) {
       log.info("Invalid bulk export request received");
       return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
@@ -176,7 +179,7 @@ class BulkPatientController {
    * @return true if the request is invalid, false otherwise
    */
   private boolean isRequestInvalid(Map<String, String> headers, String outputFormat) {
-    if (!VALID_OUTPUT_FORMATS.contains(outputFormat)) {
+    if (outputFormat != null && !VALID_OUTPUT_FORMATS.contains(outputFormat)) {
       return true;
     }
     try {

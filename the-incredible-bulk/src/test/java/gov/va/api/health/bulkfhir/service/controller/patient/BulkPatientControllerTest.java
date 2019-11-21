@@ -47,7 +47,6 @@ public class BulkPatientControllerTest {
   @Test
   void
       exportReturnsContentLocationHeaderForFirstPublicationWhenMultipleCompletedPublicationExist() {
-    when(repo.findDistinctPublicationIds()).thenReturn(List.of("1", "2"));
     long now = Instant.now().toEpochMilli();
     when(repo.findByPublicationId("1"))
         .thenReturn(
@@ -59,14 +58,9 @@ public class BulkPatientControllerTest {
                     .buildStartEpoch(now)
                     .recordsPerFile(10)
                     .build()));
-    when(request.getRequestURI()).thenReturn("/Patient/$export");
-    when(request.getQueryString()).thenReturn("_outputFormat=ndjson");
     when(identityService.register(anyList()))
         .thenReturn(List.of(Registration.builder().uuid("ZZZ").build()));
-    Map<String, String> headers = new HashMap<>();
-    headers.put("accept", "application/fhir+json");
-    headers.put("prefer", "respond-async");
-    ResponseEntity<OperationOutcome> response = controller().export(request, headers, "ndjson");
+    ResponseEntity<OperationOutcome> response = mockHeaders("ndjson");
     verify(repo, never()).findByPublicationId("2");
     assertThat(response.getStatusCodeValue()).isEqualTo(202);
     assertThat(response.getBody()).isNull();
@@ -78,7 +72,6 @@ public class BulkPatientControllerTest {
 
   @Test
   void exportReturnsContentLocationHeaderWhenACompletedPublicationExists() {
-    when(repo.findDistinctPublicationIds()).thenReturn(List.of("1", "2"));
     long now = Instant.now().toEpochMilli();
     when(repo.findByPublicationId("2"))
         .thenReturn(
@@ -99,14 +92,9 @@ public class BulkPatientControllerTest {
                     .buildStartEpoch(now)
                     .recordsPerFile(10)
                     .build()));
-    when(request.getRequestURI()).thenReturn("/Patient/$export");
-    when(request.getQueryString()).thenReturn("_outputFormat=ndjson");
     when(identityService.register(anyList()))
         .thenReturn(List.of(Registration.builder().uuid("XXX").build()));
-    Map<String, String> headers = new HashMap<>();
-    headers.put("accept", "application/fhir+json");
-    headers.put("prefer", "respond-async");
-    ResponseEntity<OperationOutcome> response = controller().export(request, headers, "ndjson");
+    ResponseEntity<OperationOutcome> response = mockHeaders(null);
     assertThat(response.getStatusCodeValue()).isEqualTo(202);
     assertThat(response.getBody()).isNull();
     List<String> contentLocationHeaders = response.getHeaders().get("Content-Location");
@@ -117,7 +105,6 @@ public class BulkPatientControllerTest {
 
   @Test
   void exportReturnsContentLocationHeaderWhenEncoderDoesntReturnData() {
-    when(repo.findDistinctPublicationIds()).thenReturn(List.of("1", "2"));
     long now = Instant.now().toEpochMilli();
     when(repo.findByPublicationId("2"))
         .thenReturn(
@@ -138,13 +125,8 @@ public class BulkPatientControllerTest {
                     .buildStartEpoch(now)
                     .recordsPerFile(10)
                     .build()));
-    when(request.getRequestURI()).thenReturn("/Patient/$export");
-    when(request.getQueryString()).thenReturn("_outputFormat=ndjson");
     when(identityService.register(anyList())).thenReturn(List.of());
-    Map<String, String> headers = new HashMap<>();
-    headers.put("accept", "application/fhir+json");
-    headers.put("prefer", "respond-async");
-    ResponseEntity<OperationOutcome> response = controller().export(request, headers, "ndjson");
+    ResponseEntity<OperationOutcome> response = mockHeaders("ndjson");
     assertThat(response.getStatusCodeValue()).isEqualTo(202);
     assertThat(response.getBody()).isNull();
     List<String> contentLocationHeaders = response.getHeaders().get("Content-Location");
@@ -236,5 +218,15 @@ public class BulkPatientControllerTest {
     headers.put("accept", "application/json");
     ResponseEntity<OperationOutcome> response = controller().export(request, headers, "ndjson");
     assertThat(response.getStatusCodeValue()).isEqualTo(400);
+  }
+
+  private ResponseEntity<OperationOutcome> mockHeaders(String outputFormat) {
+    when(repo.findDistinctPublicationIds()).thenReturn(List.of("1", "2"));
+    when(request.getRequestURI()).thenReturn("/Patient/$export");
+    when(request.getQueryString()).thenReturn("_outputFormat=ndjson");
+    Map<String, String> headers = new HashMap<>();
+    headers.put("accept", "application/fhir+json");
+    headers.put("prefer", "respond-async");
+    return controller().export(request, headers, outputFormat);
   }
 }

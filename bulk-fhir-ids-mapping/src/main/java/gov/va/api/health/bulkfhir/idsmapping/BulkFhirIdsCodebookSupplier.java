@@ -17,6 +17,7 @@ public class BulkFhirIdsCodebookSupplier implements CodebookSupplier {
         .map(Mapping.of("/Patient/$export?_outputFormat=application/fhir+ndjson", "AFN"))
         .map(Mapping.of("/Patient/$export?_outputFormat=application/ndjson", "AND"))
         .map(Mapping.of("/Patient/$export?_outputFormat=ndjson", "NDJ"))
+        .map(Mapping.of("/Patient/$export", "NOF"))
         .build();
   }
 }
