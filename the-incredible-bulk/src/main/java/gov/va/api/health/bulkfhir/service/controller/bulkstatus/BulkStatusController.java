@@ -53,7 +53,8 @@ public class BulkStatusController {
   /**
    * Build and return the bulk status response.
    *
-   * @param publicationRequestString The encoded publication request containing the original kick-off request and the publication id to retrieve
+   * @param publicationRequestString The encoded publication request containing the original
+   *     kick-off request and the publication id to retrieve
    * @return The publication file status with a link to all of the relevant files
    */
   @GetMapping(path = "{id}")
@@ -80,6 +81,12 @@ public class BulkStatusController {
             .request(publicationRequest.resource())
             .creationDate(Instant.ofEpochMilli(fileStatuses.get(0).publicationEpoch()))
             .output(outputFiles)
+            .extension(
+                PublicationFileStatusResponse.Extension.builder()
+                    .creationDate(Instant.ofEpochMilli(fileStatuses.get(0).publicationEpoch()))
+                    .id(fileStatuses.get(0).publicationId())
+                    .recordsPerFile(fileStatuses.get(0).recordsPerFile())
+                    .build())
             .build());
   }
 }
