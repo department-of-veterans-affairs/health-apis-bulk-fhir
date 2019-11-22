@@ -55,6 +55,7 @@ public class WebExceptionHandler {
   @ExceptionHandler({
     DataQueryBatchClient.DataQueryBatchClientException.class,
     FileBuilderExceptions.BuildFailed.class,
+    FileBuilderExceptions.FindFileToBuildFailed.class,
     Exception.class
   })
   @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)

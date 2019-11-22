@@ -4,5 +4,5 @@ import gov.va.api.health.bulkfhir.api.internal.PublicationStatus;
 import gov.va.api.health.bulkfhir.service.status.StatusEntity;
 import java.util.function.Function;
 
-interface PublicationStatusTransformer
+public interface PublicationStatusTransformer
     extends Function<Iterable<StatusEntity>, PublicationStatus> {}

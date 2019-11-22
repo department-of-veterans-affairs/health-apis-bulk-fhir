@@ -1,22 +1,22 @@
 package gov.va.api.health.bulkfhir.service.controller.publication;
 
+import gov.va.api.health.autoconfig.logging.Loggable;
 import gov.va.api.health.bulkfhir.service.filebuilder.FileBuildRequest;
-import gov.va.api.health.bulkfhir.service.filebuilder.FileBuilderExceptions.FindFileToBuildFailed;
 import gov.va.api.health.bulkfhir.service.filebuilder.FileToBuildManager;
 import gov.va.api.health.bulkfhir.service.status.StatusEntity;
 import gov.va.api.health.bulkfhir.service.status.StatusRepository;
-import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 @Service
 @Slf4j
 @Builder
+@Loggable
 @AllArgsConstructor(onConstructor = @__({@Autowired}))
 public class OldestFirstFileToBuildManager implements FileToBuildManager {
 
@@ -24,45 +24,24 @@ public class OldestFirstFileToBuildManager implements FileToBuildManager {
 
   @Override
   public FileBuildRequest getNextFileToBuild() {
-    try {
-      List<StatusEntity> availableFiles = repository.findByStatusNotStarted();
-      if (availableFiles == null || availableFiles.isEmpty()) {
-        /*
-         * No files that haven't been started yet have been found.
-         */
-        log.info("Didn't find any files available to be started.");
-        return null;
-      }
-
+    List<StatusEntity> availableFiles = repository.findByStatusNotStarted(PageRequest.of(0, 1));
+    if (availableFiles == null || availableFiles.isEmpty()) {
       /*
-       * Sort the files
+       * No files that haven't been started yet have been found.
        */
-      List<StatusEntity> sortedFiles = sortAvailableFiles(availableFiles);
-
-      StatusEntity fileToBuild = sortedFiles.get(0);
-
-      log.info("Found file to build next {}", fileToBuild);
-      return FileBuildRequest.builder()
-          .publicationId(fileToBuild.publicationId())
-          .fileId(fileToBuild.fileName())
-          .build();
-    } catch (Exception e) {
-      log.error("Failed to get not yet started publication files.", e);
-      throw new FindFileToBuildFailed(e);
+      log.info("Didn't find any files available to be started.");
+      return null;
     }
-  }
 
-  /**
-   * Sort the given list of files by earliest publication date, then by file name.
-   *
-   * @param availableFiles The list of available files to sort
-   * @return The sorted list of files
-   */
-  public List<StatusEntity> sortAvailableFiles(final List<StatusEntity> availableFiles) {
-    List<StatusEntity> sortedFiles = new ArrayList<>(availableFiles);
-    sortedFiles.sort(
-        Comparator.<StatusEntity>comparingLong(StatusEntity::publicationEpoch)
-            .thenComparing((a, b) -> a.fileName().compareTo(b.fileName())));
-    return sortedFiles;
+    /*
+     * The results should have been pre-sorted and only one should have been returned.
+     */
+    StatusEntity fileToBuild = availableFiles.get(0);
+
+    log.info("Found file to build next {}", fileToBuild);
+    return FileBuildRequest.builder()
+        .publicationId(fileToBuild.publicationId())
+        .fileId(fileToBuild.fileName())
+        .build();
   }
 }

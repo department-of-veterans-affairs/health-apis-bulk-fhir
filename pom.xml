@@ -11,6 +11,7 @@
   <packaging>pom</packaging>
   <modules>
     <module>bulk-fhir-api</module>
+    <module>bulk-fhir-ids-mapping</module>
     <module>the-incredible-bulk</module>
     <module>bulk-fhir-tests</module>
     <module>anonymizer</module>
