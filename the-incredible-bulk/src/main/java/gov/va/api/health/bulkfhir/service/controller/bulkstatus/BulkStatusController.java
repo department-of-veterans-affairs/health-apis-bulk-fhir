@@ -114,7 +114,7 @@ public class BulkStatusController {
   public ResponseEntity<PublicationFileStatusResponse> getBulkStatus(
       @RequestHeader("Accept") String acceptHeader,
       @PathVariable("id") String publicationRequestString) {
-    //TODO add to bulk script + IT + manual testing
+    // TODO add IT + double check on ID/name for publication extension data
     if (!VALID_ACCEPT_HEADER_VALUES.contains(acceptHeader)) {
       log.info("Invalid Accept header received for bulk status request");
       return new ResponseEntity<>(HttpStatus.BAD_REQUEST);

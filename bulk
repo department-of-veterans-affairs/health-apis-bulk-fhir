@@ -27,8 +27,17 @@ delete [--publication-id <id>]
   Delete a specific publication
 
 build [--publication-id <id>] --file-id <id>
+  Build the specified file for the specified publication
 
 next
+  Build the next file for the oldest non-completed publication
+
+export
+  Ask for the export information for the most recently completed publication
+
+status
+  Ask for the status (file location) information about the most recently completed publication
+  This will call the export endpoint and parse out the status url with encoded ID from that response
 
 EOF
 exit 1
@@ -96,6 +105,22 @@ doExport() {
     -w "%{http_code}" \
     $EXPORT_URL?_outputFormat=ndjson)
   printResponse "$activity" "$status" $WORK/response.json
+}
+
+doGetPublicationStatus() {
+  local statusUrl=$(curl -sH Content-Type:application/json \
+    -H Accept:application/json \
+    -H Prefer:respond-async \
+    $EXPORT_URL?_outputFormat=ndjson -I \
+    | grep -Fi Content-Location \
+    | cut -d" " -f2 \
+    | tr -d "[:space:]")
+  local status=$(curl -sH Content-Type:application/json \
+    -H Accept:application/json \
+    -o $WORK/response.json \
+    -w "%{http_code}" \
+    $statusUrl)
+  printResponse "Getting most recent publication status" "$status" $WORK/response.json
 }
 
 doGet() {
@@ -172,6 +197,7 @@ case $COMMAND in
   g|get) doGet;;
   l|list) doList;;
   e|export) doExport;;
+  s|status) doGetPublicationStatus;;
   *) usage "Unknown command: $COMMAND";;
 esac
 
