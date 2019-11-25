@@ -123,6 +123,7 @@ public class BulkStatusControllerTest {
                         .type("Patient")
                         .url("http://fake-va.gov/bulk/publication/EXPOSED/FILE1.ndjson")
                         .build()))
+            .error(List.of())
             .extension(
                 PublicationFileStatusResponse.Extension.builder()
                     .creationDate(Instant.ofEpochMilli(now))

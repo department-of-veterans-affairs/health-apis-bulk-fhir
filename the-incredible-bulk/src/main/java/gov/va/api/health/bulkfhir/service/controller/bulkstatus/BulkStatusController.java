@@ -114,7 +114,6 @@ public class BulkStatusController {
   public ResponseEntity<PublicationFileStatusResponse> getBulkStatus(
       @RequestHeader("Accept") String acceptHeader,
       @PathVariable("id") String publicationRequestString) {
-    // TODO add IT + double check on ID/name for publication extension data
     if (!VALID_ACCEPT_HEADER_VALUES.contains(acceptHeader)) {
       log.info("Invalid Accept header received for bulk status request");
       return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
@@ -145,6 +144,8 @@ public class BulkStatusController {
             .request(bulkBaseUrl + publicationRequest.resource())
             .creationDate(Instant.ofEpochMilli(firstStatusEntity.publicationEpoch()))
             .output(outputFiles)
+            /* Error is required, but will remain empty */
+            .error(List.of())
             .extension(
                 PublicationFileStatusResponse.Extension.builder()
                     .creationDate(Instant.ofEpochMilli(firstStatusEntity.publicationEpoch()))

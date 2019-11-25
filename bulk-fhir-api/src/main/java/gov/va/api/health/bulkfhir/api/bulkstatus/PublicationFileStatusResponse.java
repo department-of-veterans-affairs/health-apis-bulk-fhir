@@ -23,7 +23,7 @@ public class PublicationFileStatusResponse {
 
   @NotEmpty List<FileLocation> output;
 
-  @NotEmpty List<FileLocation> error;
+  List<FileLocation> error;
 
   @NotNull Extension extension;
 
