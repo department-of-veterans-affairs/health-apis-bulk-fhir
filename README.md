@@ -38,7 +38,7 @@ Depending on the resource type, the number of records can range from tens of mil
 Publications are made of many files, which are identified in the _Complete_ status response.
 A Publication can have thousands of files, each file containing tens of thousands of records.
 
-Publications are creating in an _rolling wave_.
+Publications are created in an _rolling wave_.
 For example, the _January_ publication is made available in February. 
 The _February_ publication will be built automatically in the background over the month and made
 available in March.
@@ -95,6 +95,7 @@ When building files, _The Incredible Bulk_ will gather data from _Data Query_ wh
   - Records will be extracted from Data Query, anonymized, and written to S3 for storage.
 - Once all files are created (status is `COMPLETE`) for the Publication, the entire Publication will 
   be considered `COMPLETE` and made immediately available to consumers on future _status_ calls.
+  (The _status_ endpoint is returned as part of the `/Patient/$export` call.)
   
 Notes
 - A second timer will periodically check for incomplete Publication files.
