@@ -260,7 +260,7 @@ public class PublicationIT {
     }
 
     String url() {
-      return SystemDefinitions.systemDefinition().bulkFhir().urlWithApiPath() + "bulk";
+      return SystemDefinitions.systemDefinition().bulkFhir().urlWithApiPath() + "dstu2/bulk";
     }
   }
 }

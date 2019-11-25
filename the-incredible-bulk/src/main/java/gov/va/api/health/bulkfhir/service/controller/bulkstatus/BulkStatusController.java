@@ -30,7 +30,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @Loggable
 @RequestMapping(
-  value = {"bulk"},
+  value = {"dstu2/bulk"},
   produces = {"application/json"}
 )
 public class BulkStatusController {
