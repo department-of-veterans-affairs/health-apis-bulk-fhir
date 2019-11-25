@@ -86,19 +86,21 @@ Read more
 When building files, _The Incredible Bulk_ will gather data from _Data Query_ where it will be anonymized and written to S3.
 
 # Publication Lifecycle
-- Publication is created using `POST /internal/publication`
+- A Publication is created using `POST /internal/publication`
   - Data Query will be interrogated to determine records that are available.
   - The number of files required will be determined and groups of records will be associated to each file.
   - The status of each file will be `NOT_STARTED`
-- Timer will trigger file building using `POST /internal/publication/any/file/next`
+- A timer will trigger file building using `POST /internal/publication/any/file/next`
   - The first file that has a status of `NOT_STARTED` for the oldest Publication will be chosen.
   - Records will be extracted from Data Query, anonymized, and written to S3 for storage.
-- Once all files are created for the Publication, it will be considered `COMPLETE` and made immediately
-  available to consumers on the _status_ call.
+- Once all files are created (status is `COMPLETE`) for the Publication, the entire Publication will 
+  be considered `COMPLETE` and made immediately available to consumers on future _status_ calls.
   
 Notes
 - A second timer will periodically check for incomplete Publication files.
   For example, if an instance of The Incredible Bulk is building a file, but were to crash, then
   the file would have been marked as `IN_PROGRESS`, but cannot complete.
   This timer will look for such instances and update the file status as `NOT_STARTED` so that it can be re-attempted.
-  
+- Specific files can be built using `POST /internal/publication/{id}/file/{fileId}`
+- Publications can be listed using `GET /internal/publication`
+- Status can be queried using `GET /internal/publication/{id}`
