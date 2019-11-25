@@ -27,8 +27,13 @@ public class ResourceBasedSyntheticData implements SyntheticData {
       return null;
     }
     LocalDate date;
+    LocalDate now;
     try {
+      now = LocalDate.now();
       date = LocalDate.parse(rawDate);
+      if (now.getYear() - date.getYear() > 90) {
+        date = date.withYear(now.getYear() - 90);
+      }
       date = date.withMonth(1);
       date = date.withDayOfMonth(1);
     } catch (DateTimeParseException e) {
@@ -44,8 +49,13 @@ public class ResourceBasedSyntheticData implements SyntheticData {
       return null;
     }
     OffsetDateTime date;
+    OffsetDateTime now;
     try {
+      now = OffsetDateTime.now();
       date = OffsetDateTime.parse(rawDateTime);
+      if (now.getYear() - date.getYear() > 90) {
+        date = date.withYear(now.getYear() - 90);
+      }
       date = date.withMonth(1);
       date = date.withDayOfMonth(1);
       date = date.withHour(12);
@@ -54,7 +64,7 @@ public class ResourceBasedSyntheticData implements SyntheticData {
       date = date.withOffsetSameInstant(ZoneOffset.UTC);
 
     } catch (DateTimeParseException e) {
-      log.info("Unable to parse the dateTime [{}], using a defualt value.", rawDateTime);
+      log.info("Unable to parse the dateTime [{}], using a default value.", rawDateTime);
       date = OffsetDateTime.of(2000, 1, 1, 1, 1, 1, 0, ZoneOffset.UTC);
     }
     return date.toString();
