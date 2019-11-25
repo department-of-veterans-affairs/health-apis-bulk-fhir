@@ -3,6 +3,7 @@ package gov.va.api.health.bulkfhir.api.bulkstatus;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotEmpty;
@@ -25,7 +26,7 @@ public class PublicationFileStatusResponse {
 
   List<FileLocation> error;
 
-  Extension extension;
+  Optional<Extension> extension;
 
   @Value
   @Builder
@@ -35,7 +36,7 @@ public class PublicationFileStatusResponse {
 
     @NotNull String url;
 
-    Integer count;
+    Optional<Integer> count;
   }
 
   @Value

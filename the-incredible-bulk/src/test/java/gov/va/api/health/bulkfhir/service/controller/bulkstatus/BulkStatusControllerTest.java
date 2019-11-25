@@ -1,11 +1,10 @@
-package gov.va.api.health.bulkfhir.service.controller.patient;
+package gov.va.api.health.bulkfhir.service.controller.bulkstatus;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import gov.va.api.health.bulkfhir.api.bulkstatus.PublicationFileStatusResponse;
-import gov.va.api.health.bulkfhir.service.controller.bulkstatus.BulkStatusController;
 import gov.va.api.health.bulkfhir.service.status.StatusEntity;
 import gov.va.api.health.bulkfhir.service.status.StatusRepository;
 import gov.va.api.health.ids.api.IdentityService;
@@ -13,6 +12,7 @@ import gov.va.api.health.ids.api.ResourceIdentity;
 import gov.va.api.health.ids.client.IdEncoder;
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 import javax.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -125,11 +125,12 @@ public class BulkStatusControllerTest {
                         .build()))
             .error(List.of())
             .extension(
-                PublicationFileStatusResponse.Extension.builder()
-                    .creationDate(Instant.ofEpochMilli(now))
-                    .id("EXPOSED")
-                    .recordsPerFile(10)
-                    .build())
+                Optional.of(
+                    PublicationFileStatusResponse.Extension.builder()
+                        .creationDate(Instant.ofEpochMilli(now))
+                        .id("EXPOSED")
+                        .recordsPerFile(10)
+                        .build()))
             .build();
     assertThat(response.getStatusCodeValue()).isEqualTo(200);
     assertThat(response.getBody()).isEqualTo(expected);

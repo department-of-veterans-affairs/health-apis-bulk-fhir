@@ -10,6 +10,7 @@ import gov.va.api.health.ids.api.ResourceIdentity;
 import gov.va.api.health.ids.client.IdEncoder.BadId;
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
@@ -146,11 +147,12 @@ public class BulkStatusController {
             /* Error is required, but will remain empty */
             .error(List.of())
             .extension(
-                PublicationFileStatusResponse.Extension.builder()
-                    .creationDate(Instant.ofEpochMilli(firstStatusEntity.publicationEpoch()))
-                    .id(firstStatusEntity.publicationId())
-                    .recordsPerFile(firstStatusEntity.recordsPerFile())
-                    .build())
+                Optional.of(
+                    PublicationFileStatusResponse.Extension.builder()
+                        .creationDate(Instant.ofEpochMilli(firstStatusEntity.publicationEpoch()))
+                        .id(firstStatusEntity.publicationId())
+                        .recordsPerFile(firstStatusEntity.recordsPerFile())
+                        .build()))
             .build());
   }
 }

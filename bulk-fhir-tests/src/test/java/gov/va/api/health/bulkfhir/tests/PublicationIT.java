@@ -119,7 +119,8 @@ public class PublicationIT {
               .getBulkStatus("I2-UZHTGVLJAFI4RMSCAYRQ5JENTLTEIKKGVI6UJM7WJMMGJCB44EHA0000")
               .expect(200)
               .expectValid(PublicationFileStatusResponse.class);
-      assertThat(publicationStatusResponse.extension().id()).isEqualTo("fullCycle-1");
+      assertThat(publicationStatusResponse.extension().isPresent()).isTrue();
+      assertThat(publicationStatusResponse.extension().get().id()).isEqualTo("fullCycle-1");
       assertThat(publicationStatusResponse.output().size()).isEqualTo(2);
       /* Delete both */
       endpoint.deletePublication("fullCycle-1").expect(200);
