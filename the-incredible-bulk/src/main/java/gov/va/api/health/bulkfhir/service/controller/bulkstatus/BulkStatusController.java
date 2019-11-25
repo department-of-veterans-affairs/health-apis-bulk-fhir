@@ -141,7 +141,7 @@ public class BulkStatusController {
         PublicationFileStatusResponse.builder()
             .requiresAccessToken(true)
             .request(bulkBaseUrl + publicationRequest.resource())
-            .creationDate(Instant.ofEpochMilli(firstStatusEntity.publicationEpoch()))
+            .transactionTime(Instant.ofEpochMilli(firstStatusEntity.publicationEpoch()))
             .output(outputFiles)
             /* Error is required, but will remain empty */
             .error(List.of())

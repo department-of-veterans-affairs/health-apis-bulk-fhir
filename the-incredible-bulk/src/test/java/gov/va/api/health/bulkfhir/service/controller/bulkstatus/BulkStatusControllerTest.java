@@ -116,7 +116,7 @@ public class BulkStatusControllerTest {
         PublicationFileStatusResponse.builder()
             .requiresAccessToken(true)
             .request("http://fake-va.gov/test")
-            .creationDate(Instant.ofEpochMilli(now))
+            .transactionTime(Instant.ofEpochMilli(now))
             .output(
                 List.of(
                     PublicationFileStatusResponse.FileLocation.builder()

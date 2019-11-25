@@ -19,13 +19,13 @@ public class PublicationFileStatusResponse {
 
   @NotNull String request;
 
-  @NotNull Instant creationDate;
+  @NotNull Instant transactionTime;
 
   @NotEmpty List<FileLocation> output;
 
   List<FileLocation> error;
 
-  @NotNull Extension extension;
+  Extension extension;
 
   @Value
   @Builder
@@ -34,6 +34,8 @@ public class PublicationFileStatusResponse {
     @NotNull String type;
 
     @NotNull String url;
+
+    Integer count;
   }
 
   @Value
