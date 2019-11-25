@@ -38,7 +38,7 @@ Depending on the resource type, the number of records can range from tens of mil
 Publications are made of many files, which are identified in the _Complete_ status response.
 A Publication can have thousands of files, each file containing tens of thousands of records.
 
-Publications are creating an _rolling wave_.
+Publications are creating in an _rolling wave_.
 For example, the _January_ publication is made available in February. 
 The _February_ publication will be built automatically in the background over the month and made
 available in March.
@@ -54,13 +54,13 @@ The following generalizations apply:
 #### Patient
 - Remove `.address`, `.contact[]`, `.id`, `.identifier[]`, `.photo`, `.telecom`.
 - Remove `.multipleBirthInteger` and populate `.multipleBirthBoolean` if applicable.
-- Synthesized `.name` using generated values.
+- Synthesize `.name` using generated values.
   Only `.name.given`, `.name.family`, and `.name.text` will be populated.
-- Synthesized  `.birthDate`.
+- Synthesize  `.birthDate`.
   Patients that are greater than 90 years old will have their birth date adjusted such that
   they appear 90. 
   For example, if the current year is 2019 and the patient is 92, their birth date will be `1929-01-01T12:34:56Z` 
-- Synthesized `.deceasedDateTime`
+- Synthesize `.deceasedDateTime`
 
 Read more
 - https://www.hhs.gov/hipaa/for-professionals/privacy/special-topics/de-identification/index.html
@@ -78,4 +78,7 @@ Notes
 - _The Incredible Bulk_ communicates with _Data Query_ through internal, protected APIs.
 - _The Incredible Bulk_ is responsible for Publication management and anonymization.
 - Publication files are created by _The Incredible Bulk_ but served to consumers directly from S3 (via Kong)
+  
+When building files, _The Incredible Bulk_ will gather data from _Data Query_ where it will be anonymized and written to S3.
 
+![Data Flow](/src/plantuml/data-flow.png)
