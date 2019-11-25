@@ -73,10 +73,10 @@ Read more
 # Architecture
 ![Architecture](/src/plantuml/bulk-search.png)
 
-##### Data Flow
+#### Data Flow
 ![Data Flow](/src/plantuml/data-flow.png)
 
-Notes
+##### Notes
 - _Data Query_ is responsible for enabling access to bulk FHIR compliant records through VA internal APIs that are protected from general access.
 - _The Incredible Bulk_ communicates with _Data Query_ through internal, protected APIs.
 - _The Incredible Bulk_ is responsible for Publication management and anonymization.
@@ -85,3 +85,20 @@ Notes
   
 When building files, _The Incredible Bulk_ will gather data from _Data Query_ where it will be anonymized and written to S3.
 
+# Publication Lifecycle
+- Publication is created using `POST /internal/publication`
+  - Data Query will be interrogated to determine records that are available.
+  - The number of files required will be determined and groups of records will be associated to each file.
+  - The status of each file will be `NOT_STARTED`
+- Timer will trigger file building using `POST /internal/publication/any/file/next`
+  - The first file that has a status of `NOT_STARTED` for the oldest Publication will be chosen.
+  - Records will be extracted from Data Query, anonymized, and written to S3 for storage.
+- Once all files are created for the Publication, it will be considered `COMPLETE` and made immediately
+  available to consumers on the _status_ call.
+  
+Notes
+- A second timer will periodically check for incomplete Publication files.
+  For example, if an instance of The Incredible Bulk is building a file, but were to crash, then
+  the file would have been marked as `IN_PROGRESS`, but cannot complete.
+  This timer will look for such instances and update the file status as `NOT_STARTED` so that it can be re-attempted.
+  
