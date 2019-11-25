@@ -49,8 +49,7 @@ public class BulkStatusController {
   @Builder
   BulkStatusController(
       @Value("${incrediblebulk.public-url}") String bulkBaseUrl,
-      @Value("${incrediblebulk.public-bulk-file-path:/services/fhir/v0/dstu2/bulk/publication}")
-          String bulkFileUrlPath,
+      @Value("${incrediblebulk.public-bulk-file-path}") String bulkFileUrlPath,
       @Autowired StatusRepository repository,
       @Autowired IdentityService identityService) {
     this.bulkBaseUrl = bulkBaseUrl;
