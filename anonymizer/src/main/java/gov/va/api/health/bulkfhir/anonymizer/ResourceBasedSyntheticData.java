@@ -15,6 +15,13 @@ import org.apache.commons.lang3.StringUtils;
 @Builder
 public class ResourceBasedSyntheticData implements SyntheticData {
 
+  /**
+   * Truncation age is the age of the event that is allowed before it is truncated to the truncation
+   * age in years. This was implemented to ensure the anonymity of the event as the older it is the
+   * more unique and identifying this data could be
+   */
+  public static final int TRUNCATION_AGE = 90;
+
   private final Names names;
 
   /**
@@ -31,8 +38,8 @@ public class ResourceBasedSyntheticData implements SyntheticData {
     try {
       now = LocalDate.now();
       date = LocalDate.parse(rawDate);
-      if (now.getYear() - date.getYear() > 90) {
-        date = date.withYear(now.getYear() - 90);
+      if (now.getYear() - date.getYear() > TRUNCATION_AGE) {
+        date = date.withYear(now.getYear() - TRUNCATION_AGE);
       }
       date = date.withMonth(1);
       date = date.withDayOfMonth(1);
@@ -53,8 +60,8 @@ public class ResourceBasedSyntheticData implements SyntheticData {
     try {
       now = OffsetDateTime.now();
       date = OffsetDateTime.parse(rawDateTime);
-      if (now.getYear() - date.getYear() > 90) {
-        date = date.withYear(now.getYear() - 90);
+      if (now.getYear() - date.getYear() > TRUNCATION_AGE) {
+        date = date.withYear(now.getYear() - TRUNCATION_AGE);
       }
       date = date.withMonth(1);
       date = date.withDayOfMonth(1);
