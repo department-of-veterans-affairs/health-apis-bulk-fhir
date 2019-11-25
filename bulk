@@ -159,7 +159,7 @@ doBuildNext() {
 
 #======================================================================
 PUBLICATION_URL=http://localhost:8091/internal/publication
-EXPORT_URL=http://localhost:8091/Patient/\$export
+EXPORT_URL=http://localhost:8091/dstu2/Patient/\$export
 PUBLICATION_ID=synthetic
 FILE_ID=
 RECORDS_PER_FILE=25

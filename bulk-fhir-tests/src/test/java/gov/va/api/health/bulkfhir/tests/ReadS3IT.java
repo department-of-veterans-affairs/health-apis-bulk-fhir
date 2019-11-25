@@ -20,7 +20,7 @@ public class ReadS3IT {
     String path = apiPath() + "bulk/publication/index.json";
     log.info("Verify index.json is readable [{}]", path);
     TestClients.bulkFhir()
-        .get(ImmutableMap.of("bulk", System.getProperty("bulk-token", "default-value")), path)
+        .get(ImmutableMap.of("client-key", System.getProperty("bulk-token", "default-value")), path)
         .expect(200);
   }
 }
