@@ -81,6 +81,7 @@ Notes
 - _The Incredible Bulk_ communicates with _Data Query_ through internal, protected APIs.
 - _The Incredible Bulk_ is responsible for Publication management and anonymization.
 - Publication files are created by _The Incredible Bulk_ but served to consumers directly from S3 (via Kong)
+- Timers are implemented using Kubernetes batch CronJob containers that periodically poke Publication endpoints.
   
 When building files, _The Incredible Bulk_ will gather data from _Data Query_ where it will be anonymized and written to S3.
 
