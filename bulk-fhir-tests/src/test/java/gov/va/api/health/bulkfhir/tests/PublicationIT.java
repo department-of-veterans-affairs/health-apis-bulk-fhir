@@ -6,6 +6,7 @@ import static org.mockserver.model.HttpRequest.request;
 import static org.mockserver.model.HttpResponse.response;
 
 import gov.va.api.health.autoconfig.configuration.JacksonConfig;
+import gov.va.api.health.bulkfhir.api.bulkstatus.PublicationFileStatusResponse;
 import gov.va.api.health.bulkfhir.api.internal.ClearHungRequest;
 import gov.va.api.health.bulkfhir.api.internal.FileBuildResponse;
 import gov.va.api.health.bulkfhir.api.internal.PublicationRequest;
@@ -24,7 +25,7 @@ import org.junit.experimental.categories.Category;
 import org.mockserver.integration.ClientAndServer;
 
 @Slf4j
-public class InternalPublicationIT {
+public class PublicationIT {
 
   @Test
   @Category({Local.class})
@@ -57,6 +58,14 @@ public class InternalPublicationIT {
       /* Delete it, then try to delete it again */
       endpoint.deletePublication("errorCodes-1").expect(200);
       endpoint.deletePublication("errorCodes-1").expect(404);
+      /* Check error states for the bulk status endpoint */
+      BulkStatusEndpoint bulkStatusEndpoint = BulkStatusEndpoint.create();
+      bulkStatusEndpoint.getBulkStatus("CANTDECODEME").expect(404);
+      bulkStatusEndpoint.getBulkStatusWithoutHeader("DOESNTMATTER").expect(400);
+      /* Valid decodable id with no data */
+      bulkStatusEndpoint
+          .getBulkStatus("I2-UZHTGVLJAFI4RMSCAYRQ5JENTLTEIKKGVI6UJM7WJMMGJCB44EHA0000")
+          .expect(404);
     }
   }
 
@@ -94,11 +103,25 @@ public class InternalPublicationIT {
       PublicationStatus status =
           endpoint.getPublication("fullCycle-1").expect(200).expectValid(PublicationStatus.class);
       assertThat(status.publicationId()).isEqualTo("fullCycle-1");
-      /* Build next file */
+      /* Build next file twice, to fully build the publication */
       FileBuildResponse fileBuildResponse =
           endpoint.buildNextFile().expect(202).expectValid(FileBuildResponse.class);
       assertThat(fileBuildResponse.publicationId()).isEqualTo("fullCycle-1");
       assertThat(fileBuildResponse.fileId()).isEqualTo("Patient-0001");
+      FileBuildResponse fileBuildResponse2 =
+          endpoint.buildNextFile().expect(202).expectValid(FileBuildResponse.class);
+      assertThat(fileBuildResponse2.publicationId()).isEqualTo("fullCycle-1");
+      assertThat(fileBuildResponse2.fileId()).isEqualTo("Patient-0002");
+      /* Get the status for the completed publication */
+      BulkStatusEndpoint bulkStatusEndpoint = BulkStatusEndpoint.create();
+      PublicationFileStatusResponse publicationStatusResponse =
+          bulkStatusEndpoint
+              .getBulkStatus("I2-UZHTGVLJAFI4RMSCAYRQ5JENTLTEIKKGVI6UJM7WJMMGJCB44EHA0000")
+              .expect(200)
+              .expectValid(PublicationFileStatusResponse.class);
+      assertThat(publicationStatusResponse.extension().isPresent()).isTrue();
+      assertThat(publicationStatusResponse.extension().get().id()).isEqualTo("fullCycle-1");
+      assertThat(publicationStatusResponse.output().size()).isEqualTo(2);
       /* Delete both */
       endpoint.deletePublication("fullCycle-1").expect(200);
       assertThat(endpoint.listPublications().expect(200).expectListOf(String.class))
@@ -207,6 +230,37 @@ public class InternalPublicationIT {
     String url() {
       return SystemDefinitions.systemDefinition().bulkFhir().urlWithApiPath()
           + "internal/publication";
+    }
+  }
+
+  @NoArgsConstructor(staticName = "create")
+  static class BulkStatusEndpoint {
+
+    private Header acceptHeader() {
+      return new Header("accept", "application/json");
+    }
+
+    ExpectedResponse getBulkStatus(String encodedId) {
+      return ExpectedResponse.of(
+          TestClients.bulkFhir()
+              .service()
+              .requestSpecification()
+              .header(acceptHeader())
+              .contentType("application/json")
+              .request(Method.GET, url() + "/" + encodedId));
+    }
+
+    ExpectedResponse getBulkStatusWithoutHeader(String encodedId) {
+      return ExpectedResponse.of(
+          TestClients.bulkFhir()
+              .service()
+              .requestSpecification()
+              .contentType("application/json")
+              .request(Method.GET, url() + "/" + encodedId));
+    }
+
+    String url() {
+      return SystemDefinitions.systemDefinition().bulkFhir().urlWithApiPath() + "bulk";
     }
   }
 }
