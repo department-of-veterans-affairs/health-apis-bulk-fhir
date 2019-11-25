@@ -38,7 +38,7 @@ Depending on the resource type, the number of records can range from tens of mil
 Publications are made of many files, which are identified in the _Complete_ status response.
 A Publication can have thousands of files, each file containing tens of thousands of records.
 
-Publications are created in an _rolling wave_.
+Publications are created in a _rolling wave_.
 For example, the _January_ publication is made available in February. 
 The _February_ publication will be built automatically in the background over the month and made
 available in March.
