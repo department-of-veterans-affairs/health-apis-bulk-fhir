@@ -1,6 +1,6 @@
 # health-apis-bulk-fhir
 
-This application is th Bulk FHIR layer that sits on top of 
+This application is the Bulk FHIR layer that sits on top of 
 [Data Query](https://github.com/department-of-veterans-affairs/health-apis-data-query)
 to provide _anonymous_ data.
 
