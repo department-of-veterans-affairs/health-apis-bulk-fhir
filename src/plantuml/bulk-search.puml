@@ -1,0 +1,53 @@
+@startuml
+skinparam handwritten true
+'skinparam monochrome true
+skinparam {
+  shadowing false
+  ArrowFontColor #888
+  ArrowColor steelblue
+  ActorBorderColor steelblue
+  ActorBackgroundColor white
+  RectangleBackgroundColor white
+  DatabaseBackgroundColor white
+  RectangleBorderColor<<namespace>> #ddd
+}
+hide <<namespace>> stereotype
+allow_mixing
+
+
+actor "Consumer" as public
+rectangle "API Gateway" as alb
+
+
+rectangle data-query as dqns <<namespace>> {
+  rectangle "kong" as dqk
+  rectangle "data-query" as dq
+}
+database "Datamart" as datamart
+
+
+
+rectangle bulk-fhir as tibns <<namespace>> {
+  rectangle "kong" as tibk
+  rectangle "The Incredible Bulk" as tib
+  rectangle "timer" as timer
+}
+database "S3 Anonymized Files" as tibs
+database "Publication State" as tibdb
+
+
+public -(0- alb
+alb -(0- dqk : .../Patient
+dqk -(0- dq : "/Patient\n/internal/bulk/Patient"
+dq -- datamart
+
+alb -(0- tibk : ".../Patient/$export\n.../bulk/{id}\n .../bulk/publication/{id}/file/{file}"
+tibk -(0- tib : "  /Patient/$export\n  /bulk/status/{id}"
+tib -(0- dqk : /internal/bulk/Patient
+tib -left-> tibs : <<write>>
+tibk <-- tibs : <<read>>\n.../s3/{id}/{file}
+tib -- tibdb
+timer -left(0- tibk : /internal/publication
+dqns -[hidden]left-- tibns
+
+@enduml

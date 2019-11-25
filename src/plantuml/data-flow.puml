@@ -1,0 +1,39 @@
+@startuml
+skinparam handwritten true
+'skinparam monochrome true
+skinparam {
+  shadowing false
+  ArrowFontColor #888
+  ArrowColor steelblue
+  ActorBorderColor steelblue
+  ActorBackgroundColor white
+  RectangleBackgroundColor white
+  DatabaseBackgroundColor white
+  RectangleBorderColor<<step>> #888
+}
+hide <<step>> stereotype
+allow_mixing
+
+
+database "Datamart" as datamart
+rectangle "data-query" as dq
+rectangle "kong" as tibk
+rectangle "The Incredible Bulk" as tib {
+  rectangle gather <<step>>
+  rectangle anonymize  <<step>>
+  rectangle write  <<step>>
+}
+database "S3 Anonymized Files" as tibs
+rectangle "API Gateway" as alb
+actor "Consumer" as public
+
+datamart -> dq
+dq -> gather
+gather -> anonymize
+anonymize -> write
+write -> tibs
+tibs -> tibk
+tibk -> alb
+alb -> public
+
+@enduml
