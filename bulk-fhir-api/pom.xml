@@ -8,6 +8,6 @@
     <relativePath/>
   </parent>
   <artifactId>bulk-fhir-api</artifactId>
-  <version>1.0.19-SNAPSHOT</version>
+  <version>1.0.19</version>
   <packaging>jar</packaging>
 </project>
