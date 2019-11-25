@@ -34,7 +34,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Validated
 @RestController
 @RequestMapping(
-  value = {"Patient"},
+  value = {"dstu2/Patient"},
   produces = {"application/json"}
 )
 class BulkPatientController {
@@ -58,8 +58,7 @@ class BulkPatientController {
   @Builder
   BulkPatientController(
       @Value("${incrediblebulk.public-url}") String baseUrl,
-      @Value("${incrediblebulk.public-bulk-status-path:/services/fhir/v0/dstu2/bulk}")
-          String bulkStatusPath,
+      @Value("${incrediblebulk.public-bulk-status-path}") String bulkStatusPath,
       @Autowired StatusRepository repository,
       @Autowired IdentityService identityService,
       @Autowired(required = false) PublicationStatusTransformer transformer) {
