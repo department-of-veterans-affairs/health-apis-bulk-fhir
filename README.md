@@ -73,6 +73,9 @@ Read more
 # Architecture
 ![Architecture](/src/plantuml/bulk-search.png)
 
+##### Data Flow
+![Data Flow](/src/plantuml/data-flow.png)
+
 Notes
 - _Data Query_ is responsible for enabling access to bulk FHIR compliant records through VA internal APIs that are protected from general access.
 - _The Incredible Bulk_ communicates with _Data Query_ through internal, protected APIs.
@@ -81,4 +84,3 @@ Notes
   
 When building files, _The Incredible Bulk_ will gather data from _Data Query_ where it will be anonymized and written to S3.
 
-![Data Flow](/src/plantuml/data-flow.png)
