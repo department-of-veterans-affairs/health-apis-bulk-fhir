@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
 import gov.va.api.health.dstu2.api.datatypes.HumanName;
+import java.time.LocalDate;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -16,9 +17,12 @@ public class ResourceBasedSyntheticDataTest {
   /** Let's mock the names implementation here, and only worry about synthesis. */
   @Mock Names names;
 
+  LocalDate now = LocalDate.now();
+
   @Test
   void synthesizeDate() {
-    assertThat(syntheticData().synthesizeDate("1999-09-29")).isEqualTo("1999-01-01");
+    assertThat(syntheticData().synthesizeDate(now.toString()))
+        .isEqualTo(now.withMonth(1).withDayOfMonth(1).toString());
   }
 
   @Test
@@ -34,8 +38,8 @@ public class ResourceBasedSyntheticDataTest {
 
   @Test
   void synthesizeDateTime() {
-    assertThat(syntheticData().synthesizeDateTime("1999-09-29T11:11:11Z"))
-        .isEqualTo("1999-01-01T12:34:56Z");
+    assertThat(syntheticData().synthesizeDateTime(now.getYear() + "-09-29T11:11:11Z"))
+        .isEqualTo(now.getYear() + "-01-01T12:34:56Z");
   }
 
   @Test
@@ -47,6 +51,18 @@ public class ResourceBasedSyntheticDataTest {
   void synthesizeDateTimeReturnsNullWhenNoDateTime() {
     assertThat(syntheticData().synthesizeDateTime(null)).isNull();
     assertThat(syntheticData().synthesizeDateTime("")).isNull();
+  }
+
+  @Test
+  void synthesizeDateTimeWithAgeGreaterThanNinety() {
+    assertThat(syntheticData().synthesizeDateTime("1900-12-12T11:11:11Z"))
+        .isEqualTo(now.minusYears(90).getYear() + "-01-01T12:34:56Z");
+  }
+
+  @Test
+  void synthesizeDateWithAgeGreaterThanNinety() {
+    assertThat(syntheticData().synthesizeDate("1900-12-12"))
+        .isEqualTo(now.minusYears(90).getYear() + "-01-01");
   }
 
   @Test
