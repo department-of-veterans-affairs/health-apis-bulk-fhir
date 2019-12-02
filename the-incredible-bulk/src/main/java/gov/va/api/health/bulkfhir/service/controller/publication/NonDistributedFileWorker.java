@@ -22,17 +22,16 @@ import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import java.util.stream.Stream;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 @Service
 @Slf4j
 @Builder
-@AllArgsConstructor(onConstructor = @__({@Autowired}))
 public class NonDistributedFileWorker implements FileBuildWorker {
 
   private final DataQueryBatchClient dataQuery;
@@ -42,6 +41,30 @@ public class NonDistributedFileWorker implements FileBuildWorker {
   private final BulkFileWriter fileWriter;
 
   private final ObjectMapper jacksonMapper;
+
+  private final int familyNameOffset;
+
+  /**
+   * Default constructor.
+   *
+   * @param dataQuery The data query client
+   * @param claimant The file claimant
+   * @param fileWriter The file writer
+   * @param jacksonMapper The jackson object mapper
+   * @param familyNameOffset The family name offset value
+   */
+  public NonDistributedFileWorker(
+      @Autowired DataQueryBatchClient dataQuery,
+      @Autowired FileClaimant claimant,
+      @Autowired BulkFileWriter fileWriter,
+      @Autowired ObjectMapper jacksonMapper,
+      @Value("${anonymization.family-name-offset:1000}") int familyNameOffset) {
+    this.dataQuery = dataQuery;
+    this.claimant = claimant;
+    this.fileWriter = fileWriter;
+    this.jacksonMapper = jacksonMapper;
+    this.familyNameOffset = familyNameOffset;
+  }
 
   @Override
   @Async(PUBLICATION_BUILD_EXECUTOR)
@@ -89,6 +112,7 @@ public class NonDistributedFileWorker implements FileBuildWorker {
         .syntheticData(
             ResourceBasedSyntheticData.builder()
                 .names(ClassPathResourceBasedNames.instance())
+                .familyNameOffset(familyNameOffset)
                 .build())
         .build();
   }

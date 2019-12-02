@@ -24,6 +24,8 @@ public class ResourceBasedSyntheticData implements SyntheticData {
 
   private final Names names;
 
+  private final int familyNameOffset;
+
   /**
    * We synthesize Dates and DateTimes by using: month = 1st month , day = first of the month This
    * technique is a one way transformation and can't be reversed.
@@ -84,7 +86,7 @@ public class ResourceBasedSyntheticData implements SyntheticData {
   @Override
   public List<HumanName> synthesizeName(long seed) {
     var givenName = names.getName(seed);
-    var familyName = names.getName(seed + 1000);
+    var familyName = names.getName(seed + familyNameOffset);
     return List.of(
         HumanName.builder()
             .family(List.of(familyName))

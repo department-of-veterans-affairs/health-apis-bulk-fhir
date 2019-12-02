@@ -80,6 +80,6 @@ public class ResourceBasedSyntheticDataTest {
   }
 
   ResourceBasedSyntheticData syntheticData() {
-    return ResourceBasedSyntheticData.builder().names(names).build();
+    return ResourceBasedSyntheticData.builder().names(names).familyNameOffset(1000).build();
   }
 }

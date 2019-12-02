@@ -94,6 +94,7 @@ public class NonDistributedFileWorkerTest {
         .dataQuery(dq)
         .fileWriter(fileWriter)
         .jacksonMapper(objectMapper)
+        .familyNameOffset(1000)
         .build();
   }
 }
