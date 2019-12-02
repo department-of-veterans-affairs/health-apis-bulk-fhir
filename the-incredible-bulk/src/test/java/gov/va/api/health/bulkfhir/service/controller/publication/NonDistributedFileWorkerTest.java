@@ -95,6 +95,7 @@ public class NonDistributedFileWorkerTest {
         .fileWriter(fileWriter)
         .jacksonMapper(objectMapper)
         .familyNameOffset(1000)
+        .saltKey("SALTYBRAH")
         .build();
   }
 }

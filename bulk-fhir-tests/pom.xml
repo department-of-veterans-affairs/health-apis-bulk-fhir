@@ -76,6 +76,7 @@
                 <argument>-Ddataquery.url=http://localhost:8090</argument>
                 <argument>-Ddataquery.internal-bulk-path=/internal/bulk</argument>
                 <argument>-Ddataquery.access-key=ignored</argument>
+                <argument>-Danonymization.salt=sosalt</argument>
                 <argument>-Dspring.config.location=classpath:/application.properties,file:${project.basedir}/config/secrets.properties</argument>
                 <argument>org.springframework.boot.loader.PropertiesLauncher</argument>
               </arguments>

@@ -67,7 +67,8 @@ class AnonymizerPatientSamples {
 
     Patient patient(String id) {
       return Patient.builder()
-          // Remove ID
+          // Anonymized ID
+          .id("WHOISIT")
           .resourceType("Patient")
           .extension(
               List.of(

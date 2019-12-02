@@ -1,6 +1,7 @@
 package gov.va.api.health.bulkfhir.anonymizer.patient;
 
 import gov.va.api.health.argonaut.api.resources.Patient;
+import gov.va.api.health.bulkfhir.anonymizer.AnonymizedIdGenerator;
 import gov.va.api.health.bulkfhir.anonymizer.SyntheticData;
 import java.util.function.Function;
 import lombok.Builder;
@@ -12,15 +13,19 @@ public class PatientAnonymizer implements Function<Patient, Patient> {
 
   private final SyntheticData syntheticData;
 
+  private final AnonymizedIdGenerator idGenerator;
+
   /** Anonymize a Patient Record. */
   public Patient apply(Patient resource) {
+    String anonymizedId = idGenerator.generateIdFrom(resource.id());
     /**
      * Lets get a repeatable seed from our patient record, so that we can create replicable
      * Synthetic data. For our seed, we will strip the V out of the ICN, and use the resulting long.
      * If we cannot parse the ICN, we create our seed from the string hash.
      */
-    long icnBasedSeed = icnBasedSeed(resource.id());
+    long idBasedSeed = Integer.toUnsignedLong(anonymizedId.hashCode());
     return Patient.builder()
+        .id(anonymizedId)
         .birthDate(syntheticData.synthesizeDate(resource.birthDate()))
         .careProvider(resource.careProvider())
         .communication(resource.communication())
@@ -39,25 +44,10 @@ public class PatientAnonymizer implements Function<Patient, Patient> {
         .multipleBirthBoolean(
             sanitizeMultipleBirthBoolean(
                 resource.multipleBirthBoolean(), resource.multipleBirthInteger()))
-        .name(syntheticData.synthesizeName(icnBasedSeed))
+        .name(syntheticData.synthesizeName(idBasedSeed))
         .resourceType(resource.resourceType())
         .text(resource.text())
         .build();
-  }
-
-  /**
-   * Generate a seed for name synthesis derived from the ICN. Fallback to a string hash if we can't
-   * parse the ICN. This will allow for a unique, repeatible seed for each ICN.
-   */
-  long icnBasedSeed(String id) {
-    long icnBasedSeed;
-    try {
-      icnBasedSeed = Long.parseLong(id.replace("V", ""));
-    } catch (NumberFormatException e) {
-      log.info("Failed to generate ICN Based seed from: {}. Using default hash instead.", id);
-      icnBasedSeed = id.hashCode();
-    }
-    return icnBasedSeed;
   }
 
   /**
