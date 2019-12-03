@@ -3,6 +3,7 @@ package gov.va.api.health.bulkfhir.anonymizer.patient;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
+import gov.va.api.health.bulkfhir.anonymizer.AnonymizedIdGenerator;
 import gov.va.api.health.bulkfhir.anonymizer.SyntheticData;
 import gov.va.api.health.bulkfhir.anonymizer.patient.AnonymizerPatientSamples.Anonymized;
 import gov.va.api.health.bulkfhir.anonymizer.patient.AnonymizerPatientSamples.Fhir;
@@ -20,8 +21,13 @@ public class PatientAnonymizerTest {
 
   @Mock SyntheticData syntheticData;
 
+  @Mock AnonymizedIdGenerator idGenerator;
+
   PatientAnonymizer anonymizer() {
-    return PatientAnonymizer.builder().syntheticData(syntheticData).build();
+    return PatientAnonymizer.builder()
+        .syntheticData(syntheticData)
+        .idGenerator(idGenerator)
+        .build();
   }
 
   /**
@@ -42,19 +48,9 @@ public class PatientAnonymizerTest {
     when(syntheticData.synthesizeDate("1970-11-14")).thenReturn("1970-10-01");
     when(syntheticData.synthesizeDateTime("2001-03-03T15:08:09Z"))
         .thenReturn("2001-02-01T00:00:00Z");
+    when(idGenerator.generateIdFrom(Mockito.anyString())).thenReturn("WHOISIT");
     assertThat(anonymizer().apply(Fhir.create().patient()))
         .isEqualTo(Anonymized.create().patient());
-  }
-
-  @Test
-  void icnBasedSeedReturnsHashWhenIcnIsGarbage() {
-    assertThat(anonymizer().icnBasedSeed("GARBAGE")).isEqualTo("GARBAGE".hashCode());
-  }
-
-  @Test
-  void icnBasedSeedReturnsLongWhenIcnIs10V6Format() {
-    Long expected = Long.valueOf("0123456789012345");
-    assertThat(anonymizer().icnBasedSeed("0123456789V012345")).isEqualTo(expected);
   }
 
   @Test
