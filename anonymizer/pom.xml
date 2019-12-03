@@ -4,13 +4,13 @@
   <parent>
     <artifactId>bulk-fhir-parent</artifactId>
     <groupId>gov.va.api.health</groupId>
-    <version>1.0.24-SNAPSHOT</version>
+    <version>1.0.25-SNAPSHOT</version>
   </parent>
   <artifactId>anonymizer</artifactId>
-  <version>1.0.24-SNAPSHOT</version>
+  <version>1.0.25-SNAPSHOT</version>
   <packaging>jar</packaging>
   <properties>
-    <argonaut.version>2.0.20</argonaut.version>
+    <argonaut.version>2.0.21</argonaut.version>
     <java-uuid-generator.version>3.1.5</java-uuid-generator.version>
   </properties>
   <dependencies>
