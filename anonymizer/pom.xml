@@ -11,6 +11,7 @@
   <packaging>jar</packaging>
   <properties>
     <argonaut.version>2.0.20</argonaut.version>
+    <java-uuid-generator.version>3.1.5</java-uuid-generator.version>
   </properties>
   <dependencies>
     <dependency>
@@ -21,6 +22,11 @@
     <dependency>
       <groupId>org.projectlombok</groupId>
       <artifactId>lombok</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.uuid</groupId>
+      <artifactId>java-uuid-generator</artifactId>
+      <version>${java-uuid-generator.version}</version>
     </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>

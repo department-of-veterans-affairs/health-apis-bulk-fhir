@@ -47,6 +47,8 @@ public class NonDistributedFileWorker implements FileBuildWorker {
 
   private final String saltKey;
 
+  private final String uuidSeed;
+
   /**
    * Default constructor.
    *
@@ -63,13 +65,15 @@ public class NonDistributedFileWorker implements FileBuildWorker {
       @Autowired BulkFileWriter fileWriter,
       @Autowired ObjectMapper jacksonMapper,
       @Value("${anonymization.family-name-offset}") int familyNameOffset,
-      @Value("${anonymization.salt}") String saltKey) {
+      @Value("${anonymization.salt}") String saltKey,
+      @Value("${anonymization.uuid-seed}") String uuidSeed) {
     this.dataQuery = dataQuery;
     this.claimant = claimant;
     this.fileWriter = fileWriter;
     this.jacksonMapper = jacksonMapper;
     this.familyNameOffset = familyNameOffset;
     this.saltKey = saltKey;
+    this.uuidSeed = uuidSeed;
   }
 
   @Override
@@ -121,7 +125,11 @@ public class NonDistributedFileWorker implements FileBuildWorker {
                 .familyNameOffset(familyNameOffset)
                 .build())
         .idGenerator(
-            SaltedType5UuidGenerator.builder().resource("Patient").saltKey(saltKey).build())
+            SaltedType5UuidGenerator.builder()
+                .resource("Patient")
+                .saltKey(saltKey)
+                .seed(uuidSeed)
+                .build())
         .build();
   }
 

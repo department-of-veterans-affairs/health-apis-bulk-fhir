@@ -18,7 +18,11 @@ public class SaltedType5UuidGeneratorTest {
   }
 
   SaltedType5UuidGenerator idGenerator(String resource) {
-    return SaltedType5UuidGenerator.builder().resource(resource).saltKey("SALTYBRAH").build();
+    return SaltedType5UuidGenerator.builder()
+        .resource(resource)
+        .saltKey("SALTYBRAH")
+        .seed("3e7636e4-6e18-58df-8ee8-69f4d9770c3e")
+        .build();
   }
 
   @Test

@@ -96,6 +96,7 @@ public class NonDistributedFileWorkerTest {
         .jacksonMapper(objectMapper)
         .familyNameOffset(1000)
         .saltKey("SALTYBRAH")
+        .uuidSeed("a457c370-7992-5d1a-9c14-832566af5af2")
         .build();
   }
 }
