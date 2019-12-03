@@ -115,6 +115,7 @@ class InternalPublicationController {
               .fileName(String.format(fileName, page))
               .page(page)
               .count(thisFileSize)
+              .automatic(request.automatic())
               .build());
       page++;
       remaining -= thisFileSize;

@@ -133,6 +133,66 @@ public class PublicationIT {
     }
   }
 
+  @Test
+  @Category({Local.class})
+  public void fullCycleWithLiveData() {
+    /*
+     * This is a similar version of the above test, but desensitized to not interfere when run on a live database.
+     */
+    try (MockDataQuery dq = MockDataQuery.create()) {
+      /* Nothing exists */
+      PublicationEndpoint endpoint = PublicationEndpoint.create();
+      assertThat(endpoint.listPublications().expect(200).expectListOf(String.class)).isEmpty();
+      /* Create one */
+      dq.count(
+          ResourceCount.builder().resourceType("Patient").maxRecordsPerPage(100).count(88).build());
+      endpoint
+          .create(
+              PublicationRequest.builder()
+                  .publicationId("fullCycle-1")
+                  .recordsPerFile(50)
+                  .automatic(false)
+                  .build())
+          .expect(201);
+      assertThat(endpoint.listPublications().expect(200).expectListOf(String.class))
+          .contains("fullCycle-1");
+      /* Create another one */
+      endpoint
+          .create(
+              PublicationRequest.builder().publicationId("fullCycle-2").recordsPerFile(50).build())
+          .expect(201);
+      assertThat(endpoint.listPublications().expect(200).expectListOf(String.class))
+          .contains("fullCycle-1", "fullCycle-2");
+      /* Clear Hung Publications :lyin: */
+      endpoint
+          .clearHungPublications(
+              ClearHungRequest.builder().hangTime(Duration.parse("PT87600H")).build())
+          .expect(200);
+      assertThat(endpoint.listPublications().expect(200).expectListOf(String.class))
+          .contains("fullCycle-1", "fullCycle-2");
+      /* Get details for one */
+      PublicationStatus status =
+          endpoint.getPublication("fullCycle-1").expect(200).expectValid(PublicationStatus.class);
+      assertThat(status.publicationId()).isEqualTo("fullCycle-1");
+      /* Call the next endpoint and validate a successful response is received */
+      ExpectedResponse nextResponse = endpoint.buildNextFile();
+      assertThat(nextResponse.response().getStatusCode()).isIn(202, 204);
+      /* Get the status for a publication that doesn't exist */
+      BulkStatusEndpoint bulkStatusEndpoint = BulkStatusEndpoint.create();
+      bulkStatusEndpoint
+          .getBulkStatus("I2-UZHTGVLJAFI4RMSCAYRQ5JEMTLTEIKKGVI6UJM7WJMMGJCB44EHA0000")
+          .expect(404);
+      /* Delete both */
+      endpoint.deletePublication("fullCycle-1").expect(200);
+      assertThat(endpoint.listPublications().expect(200).expectListOf(String.class))
+          .containsExactly("fullCycle-2");
+      endpoint.deletePublication("fullCycle-2").expect(200);
+      assertThat(endpoint.listPublications().expect(200).expectListOf(String.class)).isEmpty();
+      /* Build next file when there are no more files to build */
+      endpoint.buildNextFile().expect(204);
+    }
+  }
+
   @NoArgsConstructor(staticName = "create")
   static class MockDataQuery implements AutoCloseable {
 

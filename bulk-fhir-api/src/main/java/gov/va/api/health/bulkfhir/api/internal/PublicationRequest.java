@@ -19,4 +19,6 @@ public class PublicationRequest {
   @Min(1)
   @Max(500_000)
   int recordsPerFile;
+
+  @Builder.Default boolean automatic = true;
 }

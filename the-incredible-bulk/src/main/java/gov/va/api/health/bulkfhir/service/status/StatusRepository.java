@@ -13,7 +13,8 @@ public interface StatusRepository extends JpaRepository<StatusEntity, String> {
           + " group by s.publicationId order by max(s.publicationEpoch) desc";
   String NOT_STARTED_BY_PUBLICATION_AND_FILE_QUERY =
       "select s from StatusEntity s where s.buildCompleteEpoch = 0"
-          + " and s.buildStartEpoch = 0 order by s.publicationEpoch, s.fileName";
+          + " and s.buildStartEpoch = 0 and s.automatic = true"
+          + " order by s.publicationEpoch, s.fileName";
 
   int countByPublicationId(String publicationId);
 
