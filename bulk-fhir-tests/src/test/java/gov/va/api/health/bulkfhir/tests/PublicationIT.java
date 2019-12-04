@@ -12,6 +12,9 @@ import gov.va.api.health.bulkfhir.api.internal.FileBuildResponse;
 import gov.va.api.health.bulkfhir.api.internal.PublicationRequest;
 import gov.va.api.health.bulkfhir.api.internal.PublicationStatus;
 import gov.va.api.health.bulkfhir.service.dataquery.client.DataQueryBatchClient.ResourceCount;
+import gov.va.api.health.bulkfhir.tests.categories.LabBulkFhir;
+import gov.va.api.health.bulkfhir.tests.categories.ProdBulkFhir;
+import gov.va.api.health.sentinel.Environment;
 import gov.va.api.health.sentinel.ExpectedResponse;
 import gov.va.api.health.sentinel.categories.Local;
 import io.restassured.http.Header;
@@ -20,6 +23,7 @@ import java.time.Duration;
 import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.junit.After;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.mockserver.integration.ClientAndServer;
@@ -27,45 +31,32 @@ import org.mockserver.integration.ClientAndServer;
 @Slf4j
 public class PublicationIT {
 
+  @After
+  public void cleanUpPublications() {
+    PublicationEndpoint endpoint = PublicationEndpoint.create();
+    endpoint.deletePublication("fullCycle-1");
+    endpoint.deletePublication("fullCycle-2");
+    endpoint.deletePublication("errorCodes-1");
+  }
+
   @Test
-  @Category({Local.class})
+  @Category({LabBulkFhir.class, Local.class, ProdBulkFhir.class})
   public void errorCodes() {
-    try (MockDataQuery dq = MockDataQuery.create()) {
-      dq.count(
-          ResourceCount.builder().resourceType("Patient").maxRecordsPerPage(100).count(88).build());
-      PublicationEndpoint endpoint = PublicationEndpoint.create();
-      /* Does not exist */
-      endpoint.getPublication("nope-" + System.currentTimeMillis()).expect(404);
-      /* Publication ID not ok */
-      endpoint
-          .create(PublicationRequest.builder().publicationId("no").recordsPerFile(100).build())
-          .expect(400);
-      /* Try to create same publication twice */
-      endpoint
-          .create(
-              PublicationRequest.builder()
-                  .publicationId("errorCodes-1")
-                  .recordsPerFile(100)
-                  .build())
-          .expect(201);
-      endpoint
-          .create(
-              PublicationRequest.builder()
-                  .publicationId("errorCodes-1")
-                  .recordsPerFile(100)
-                  .build())
-          .expect(400);
-      /* Delete it, then try to delete it again */
-      endpoint.deletePublication("errorCodes-1").expect(200);
-      endpoint.deletePublication("errorCodes-1").expect(404);
-      /* Check error states for the bulk status endpoint */
-      BulkStatusEndpoint bulkStatusEndpoint = BulkStatusEndpoint.create();
-      bulkStatusEndpoint.getBulkStatus("CANTDECODEME").expect(404);
-      bulkStatusEndpoint.getBulkStatusWithoutHeader("DOESNTMATTER").expect(400);
-      /* Valid decodable id with no data */
-      bulkStatusEndpoint
-          .getBulkStatus("I2-UZHTGVLJAFI4RMSCAYRQ5JENTLTEIKKGVI6UJM7WJMMGJCB44EHA0000")
-          .expect(404);
+    /*
+     * If we are in the local environment we have to mock data query, otherwise a real one already exists.
+     */
+    if (Environment.get() == Environment.LOCAL) {
+      try (MockDataQuery dq = MockDataQuery.create()) {
+        dq.count(
+            ResourceCount.builder()
+                .resourceType("Patient")
+                .maxRecordsPerPage(100)
+                .count(88)
+                .build());
+        runErrorCodesTest();
+      }
+    } else {
+      runErrorCodesTest();
     }
   }
 
@@ -134,63 +125,121 @@ public class PublicationIT {
   }
 
   @Test
-  @Category({Local.class})
+  @Category({LabBulkFhir.class, Local.class, ProdBulkFhir.class})
   public void fullCycleWithLiveData() {
     /*
-     * This is a similar version of the above test, but desensitized to not interfere when run on a live database.
+     * If we are in the local environment we have to mock data query, otherwise a real one already exists.
      */
-    try (MockDataQuery dq = MockDataQuery.create()) {
-      /* Nothing exists */
-      PublicationEndpoint endpoint = PublicationEndpoint.create();
-      assertThat(endpoint.listPublications().expect(200).expectListOf(String.class)).isEmpty();
-      /* Create one */
-      dq.count(
-          ResourceCount.builder().resourceType("Patient").maxRecordsPerPage(100).count(88).build());
-      endpoint
-          .create(
-              PublicationRequest.builder()
-                  .publicationId("fullCycle-1")
-                  .recordsPerFile(50)
-                  .automatic(false)
-                  .build())
-          .expect(201);
-      assertThat(endpoint.listPublications().expect(200).expectListOf(String.class))
-          .contains("fullCycle-1");
-      /* Create another one */
-      endpoint
-          .create(
-              PublicationRequest.builder().publicationId("fullCycle-2").recordsPerFile(50).build())
-          .expect(201);
-      assertThat(endpoint.listPublications().expect(200).expectListOf(String.class))
-          .contains("fullCycle-1", "fullCycle-2");
-      /* Clear Hung Publications :lyin: */
-      endpoint
-          .clearHungPublications(
-              ClearHungRequest.builder().hangTime(Duration.parse("PT87600H")).build())
-          .expect(200);
-      assertThat(endpoint.listPublications().expect(200).expectListOf(String.class))
-          .contains("fullCycle-1", "fullCycle-2");
-      /* Get details for one */
-      PublicationStatus status =
-          endpoint.getPublication("fullCycle-1").expect(200).expectValid(PublicationStatus.class);
-      assertThat(status.publicationId()).isEqualTo("fullCycle-1");
-      /* Call the next endpoint and validate a successful response is received */
-      ExpectedResponse nextResponse = endpoint.buildNextFile();
-      assertThat(nextResponse.response().getStatusCode()).isIn(202, 204);
-      /* Get the status for a publication that doesn't exist */
-      BulkStatusEndpoint bulkStatusEndpoint = BulkStatusEndpoint.create();
-      bulkStatusEndpoint
-          .getBulkStatus("I2-UZHTGVLJAFI4RMSCAYRQ5JEMTLTEIKKGVI6UJM7WJMMGJCB44EHA0000")
-          .expect(404);
-      /* Delete both */
-      endpoint.deletePublication("fullCycle-1").expect(200);
-      assertThat(endpoint.listPublications().expect(200).expectListOf(String.class))
-          .containsExactly("fullCycle-2");
-      endpoint.deletePublication("fullCycle-2").expect(200);
-      assertThat(endpoint.listPublications().expect(200).expectListOf(String.class)).isEmpty();
-      /* Build next file when there are no more files to build */
-      endpoint.buildNextFile().expect(204);
+    if (Environment.get() == Environment.LOCAL) {
+      try (MockDataQuery dq = MockDataQuery.create()) {
+        dq.count(
+            ResourceCount.builder()
+                .resourceType("Patient")
+                .maxRecordsPerPage(100)
+                .count(88)
+                .build());
+        runLiveFullCycleTest();
+      }
+    } else {
+      runLiveFullCycleTest();
     }
+  }
+
+  private void runErrorCodesTest() {
+    PublicationEndpoint endpoint = PublicationEndpoint.create();
+    /* Does not exist */
+    endpoint.getPublication("nope-" + System.currentTimeMillis()).expect(404);
+    /* Publication ID not ok */
+    endpoint
+        .create(PublicationRequest.builder().publicationId("no").recordsPerFile(100).build())
+        .expect(400);
+    /* Try to create same publication twice */
+    endpoint
+        .create(
+            PublicationRequest.builder()
+                .publicationId("errorCodes-1")
+                .recordsPerFile(100)
+                .automatic(false)
+                .build())
+        .expect(201);
+    endpoint
+        .create(
+            PublicationRequest.builder()
+                .publicationId("errorCodes-1")
+                .recordsPerFile(100)
+                .automatic(false)
+                .build())
+        .expect(400);
+    /* Delete it, then try to delete it again */
+    endpoint.deletePublication("errorCodes-1").expect(200);
+    endpoint.deletePublication("errorCodes-1").expect(404);
+    /* Check error states for the bulk status endpoint */
+    BulkStatusEndpoint bulkStatusEndpoint = BulkStatusEndpoint.create();
+    bulkStatusEndpoint.getBulkStatus("CANTDECODEME").expect(404);
+    bulkStatusEndpoint.getBulkStatusWithoutHeader("DOESNTMATTER").expect(400);
+    /* Valid decodable id with no data */
+    bulkStatusEndpoint
+        .getBulkStatus("I2-UZHTGVLJAFI4RMSCAYRQ5JENTLTEIKKGVI6UJM7WJMMGJCB44EHA0000")
+        .expect(404);
+  }
+
+  /**
+   * This is a similar version of the fullCycle test, but desensitized to not interfere when run on
+   * a live database.
+   */
+  private void runLiveFullCycleTest() {
+    /* Nothing exists */
+    PublicationEndpoint endpoint = PublicationEndpoint.create();
+    assertThat(endpoint.listPublications().expect(200).expectListOf(String.class)).isEmpty();
+    /* Create one */
+    endpoint
+        .create(
+            PublicationRequest.builder()
+                .publicationId("fullCycle-1")
+                .recordsPerFile(50)
+                .automatic(false)
+                .build())
+        .expect(201);
+    assertThat(endpoint.listPublications().expect(200).expectListOf(String.class))
+        .contains("fullCycle-1");
+    /* Create another one */
+    endpoint
+        .create(
+            PublicationRequest.builder()
+                .publicationId("fullCycle-2")
+                .recordsPerFile(50)
+                .automatic(false)
+                .build())
+        .expect(201);
+    assertThat(endpoint.listPublications().expect(200).expectListOf(String.class))
+        .contains("fullCycle-1", "fullCycle-2");
+    /* Clear Hung Publications :lyin: */
+    endpoint
+        .clearHungPublications(
+            ClearHungRequest.builder().hangTime(Duration.parse("PT87600H")).build())
+        .expect(200);
+    assertThat(endpoint.listPublications().expect(200).expectListOf(String.class))
+        .contains("fullCycle-1", "fullCycle-2");
+    /* Get details for one */
+    PublicationStatus status =
+        endpoint.getPublication("fullCycle-1").expect(200).expectValid(PublicationStatus.class);
+    assertThat(status.publicationId()).isEqualTo("fullCycle-1");
+    /* Call the next endpoint and validate a successful response is received */
+    ExpectedResponse nextResponse = endpoint.buildNextFile();
+    assertThat(nextResponse.response().getStatusCode()).isIn(202, 204);
+    /* Get the status for a publication that doesn't exist */
+    BulkStatusEndpoint bulkStatusEndpoint = BulkStatusEndpoint.create();
+    bulkStatusEndpoint
+        .getBulkStatus("I2-UZHTGVLJAFI4RMSCAYRQ5JEMTLTEIKKGVI6UJM7WJMMGJCB44EHA0000")
+        .expect(404);
+    /* Delete both */
+    endpoint.deletePublication("fullCycle-1").expect(200);
+    assertThat(endpoint.listPublications().expect(200).expectListOf(String.class))
+        .containsExactly("fullCycle-2");
+    endpoint.deletePublication("fullCycle-2").expect(200);
+    assertThat(endpoint.listPublications().expect(200).expectListOf(String.class)).isEmpty();
+    /* Build next file when there are no more files to build */
+    endpoint.buildNextFile().expect(204);
   }
 
   @NoArgsConstructor(staticName = "create")
@@ -288,7 +337,7 @@ public class PublicationIT {
     }
 
     String url() {
-      return SystemDefinitions.systemDefinition().bulkFhir().urlWithApiPath()
+      return SystemDefinitions.systemDefinition().internalBulkFhir().urlWithApiPath()
           + "internal/publication";
     }
   }
@@ -320,7 +369,7 @@ public class PublicationIT {
     }
 
     String url() {
-      return SystemDefinitions.systemDefinition().bulkFhir().urlWithApiPath() + "dstu2/bulk";
+      return SystemDefinitions.systemDefinition().bulkFhir().urlWithApiPath() + "bulk";
     }
   }
 }
