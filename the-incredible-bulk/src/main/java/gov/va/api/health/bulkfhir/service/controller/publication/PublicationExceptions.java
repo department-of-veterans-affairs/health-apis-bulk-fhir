@@ -11,6 +11,13 @@ public class PublicationExceptions {
     }
   }
 
+  static void assertFileCount(int recordsPerFile, int resourceCount, int maxFileCount) {
+    var fileCount = resourceCount / recordsPerFile;
+    if (fileCount > maxFileCount) {
+      throw new PublicationFileCountTooBig(fileCount, maxFileCount);
+    }
+  }
+
   static void assertPublicationFileFound(boolean found, String publicationId, String fileId) {
     if (!found) {
       throw new PublicationFileNotFound(publicationId, fileId);
@@ -26,6 +33,13 @@ public class PublicationExceptions {
   static void assertRecordsPerFile(int recordsPerFile, int maxAllowed) {
     if (recordsPerFile > maxAllowed) {
       throw new PublicationRecordsPerFileTooBig(recordsPerFile, maxAllowed);
+    }
+  }
+
+  public static class PublicationFileCountTooBig extends PublicationException {
+
+    public PublicationFileCountTooBig(int fileCount, int max) {
+      super("Requested Files:" + fileCount + ", max allowed: " + max);
     }
   }
 
