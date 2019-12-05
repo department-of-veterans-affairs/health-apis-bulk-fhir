@@ -7,6 +7,7 @@ import static org.mockserver.model.HttpResponse.response;
 
 import gov.va.api.health.autoconfig.configuration.JacksonConfig;
 import gov.va.api.health.bulkfhir.api.bulkstatus.PublicationFileStatusResponse;
+import gov.va.api.health.bulkfhir.api.internal.BuildStatus;
 import gov.va.api.health.bulkfhir.api.internal.ClearHungRequest;
 import gov.va.api.health.bulkfhir.api.internal.FileBuildResponse;
 import gov.va.api.health.bulkfhir.api.internal.PublicationRequest;
@@ -20,6 +21,11 @@ import gov.va.api.health.sentinel.categories.Local;
 import io.restassured.http.Header;
 import io.restassured.http.Headers;
 import io.restassured.http.Method;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.Duration;
 import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
@@ -159,6 +165,59 @@ public class PublicationIT {
       }
     } else {
       runLiveFullCycleTest();
+    }
+  }
+
+  @Test
+  @Category({LabBulkFhir.class, ProdBulkFhir.class})
+  public void fullCycleWithS3WriteCheck() throws InterruptedException, IOException {
+    String fullCycle1PublicationId = makeItPublicationName("fullCycle-1");
+    PublicationEndpoint endpoint = PublicationEndpoint.create();
+    assertThat(endpoint.listPublications().expect(200).expectListOf(String.class))
+            .doesNotContain(fullCycle1PublicationId);
+    /* Create one */
+    endpoint
+            .create(
+                    PublicationRequest.builder()
+                            .publicationId(fullCycle1PublicationId)
+                            .recordsPerFile(10000)
+                            .automatic(false)
+                            .build())
+            .expect(201);
+    assertThat(endpoint.listPublications().expect(200).expectListOf(String.class))
+            .contains(fullCycle1PublicationId);
+    /* Build the first file here */
+    endpoint.buildFile(fullCycle1PublicationId, "Patient-0001").expect(202);
+
+    int i = 0;
+    while (i < 20) {
+      PublicationStatus status =
+              endpoint
+                      .getPublication(fullCycle1PublicationId)
+                      .expect(200)
+                      .expectValid(PublicationStatus.class);
+      /*
+       * See if the Patient-0001 file is completed
+       */
+      if (status.files().stream().anyMatch(((file) -> file.fileId().equals("Patient-0001") && file.status() == BuildStatus.COMPLETE))) {
+        break;
+      }
+      i++;
+      Thread.sleep(1000);
+    }
+
+    /*
+     * The file should have been completed verify it is in S3 if we aren't local, otherwise check the filesystem
+     */
+    if (Environment.get() == Environment.LOCAL) {
+      Path filePath = Paths.get("Patient-0001.ndjson");
+      /* Make sure the file is created */
+      assertThat(Files.exists(filePath)).isTrue();
+      /* Delete the file */
+      Files.delete(filePath);
+    } else {
+      BulkStatusEndpoint statusEndpoint = BulkStatusEndpoint.create();
+      statusEndpoint.getBulkFile(fullCycle1PublicationId, "Patient-0001").expect(200);
     }
   }
 
@@ -308,6 +367,16 @@ public class PublicationIT {
               .request(Method.POST, url() + "/any/file/next"));
     }
 
+    ExpectedResponse buildFile(String publicationId, String fileId) {
+      return ExpectedResponse.of(
+              TestClients.bulkFhir()
+                      .service()
+                      .requestSpecification()
+                      .header(internalAccessToken())
+                      .contentType("application/json")
+                      .request(Method.POST, url() + "/" + publicationId + "/file/" + fileId));
+    }
+
     @SneakyThrows
     ExpectedResponse clearHungPublications(ClearHungRequest clearHungRequest) {
       return ExpectedResponse.of(
@@ -393,6 +462,16 @@ public class PublicationIT {
               .headers(acceptAndTokenHeader())
               .contentType("application/json")
               .request(Method.GET, url() + "/" + encodedId));
+    }
+
+    ExpectedResponse getBulkFile(String publicationId, String fileId) {
+      return ExpectedResponse.of(
+              TestClients.bulkFhir()
+                      .service()
+                      .requestSpecification()
+                      .headers(acceptAndTokenHeader())
+                      .contentType("application/json")
+                      .request(Method.GET, url() + "/publication/" + publicationId + "/" + fileId));
     }
 
     ExpectedResponse getBulkStatusWithoutHeader(String encodedId) {
