@@ -36,9 +36,9 @@ public class PublicationIT {
   @After
   public void cleanUpPublications() {
     PublicationEndpoint endpoint = PublicationEndpoint.create();
-    endpoint.deletePublication(makeITPublicationName("fullCycle-1"));
-    endpoint.deletePublication(makeITPublicationName("fullCycle-2"));
-    endpoint.deletePublication(makeITPublicationName("errorCodes-1"));
+    endpoint.deletePublication(makeItPublicationName("fullCycle-1"));
+    endpoint.deletePublication(makeItPublicationName("fullCycle-2"));
+    endpoint.deletePublication(makeItPublicationName("errorCodes-1"));
   }
 
   @Test
@@ -66,8 +66,8 @@ public class PublicationIT {
   @Category({Local.class})
   public void fullCycle() {
     try (MockDataQuery dq = MockDataQuery.create()) {
-      String fullCycle1PublicationId = makeITPublicationName("fullCycle-1");
-      String fullCycle2PublicationId = makeITPublicationName("fullCycle-2");
+      String fullCycle1PublicationId = makeItPublicationName("fullCycle-1");
+      String fullCycle2PublicationId = makeItPublicationName("fullCycle-2");
       /* Nothing exists */
       PublicationEndpoint endpoint = PublicationEndpoint.create();
       assertThat(endpoint.listPublications().expect(200).expectListOf(String.class)).isEmpty();
@@ -161,12 +161,12 @@ public class PublicationIT {
     }
   }
 
-  private String makeITPublicationName(String baseName) {
+  private String makeItPublicationName(String baseName) {
     return PublicationIT.class.getSimpleName() + "-" + baseName;
   }
 
   private void runErrorCodesTest() {
-    String errorCodes1PublicationId = makeITPublicationName("errorCodes-1");
+    String errorCodes1PublicationId = makeItPublicationName("errorCodes-1");
     PublicationEndpoint endpoint = PublicationEndpoint.create();
     /* Does not exist */
     endpoint.getPublication("nope-" + System.currentTimeMillis()).expect(404);
@@ -209,8 +209,8 @@ public class PublicationIT {
    * a live database.
    */
   private void runLiveFullCycleTest() {
-    String fullCycle1PublicationId = makeITPublicationName("fullCycle-1");
-    String fullCycle2PublicationId = makeITPublicationName("fullCycle-2");
+    String fullCycle1PublicationId = makeItPublicationName("fullCycle-1");
+    String fullCycle2PublicationId = makeItPublicationName("fullCycle-2");
     /* Nothing exists */
     PublicationEndpoint endpoint = PublicationEndpoint.create();
     assertThat(endpoint.listPublications().expect(200).expectListOf(String.class)).isEmpty();
