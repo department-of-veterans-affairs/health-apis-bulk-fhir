@@ -386,7 +386,6 @@ public class PublicationIT {
     }
 
     ExpectedResponse getBulkStatus(String encodedId) {
-      Headers d = new Headers();
       return ExpectedResponse.of(
           TestClients.bulkFhir()
               .service()
