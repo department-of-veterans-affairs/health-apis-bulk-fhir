@@ -53,7 +53,7 @@ public class PublicationIT {
         dq.count(
             ResourceCount.builder()
                 .resourceType("Patient")
-                .maxRecordsPerPage(100)
+                .maxRecordsPerPage(25000)
                 .count(88)
                 .build());
         runErrorCodesTest();
@@ -152,7 +152,7 @@ public class PublicationIT {
         dq.count(
             ResourceCount.builder()
                 .resourceType("Patient")
-                .maxRecordsPerPage(100)
+                .maxRecordsPerPage(25000)
                 .count(88)
                 .build());
         runLiveFullCycleTest();
@@ -180,7 +180,7 @@ public class PublicationIT {
         .create(
             PublicationRequest.builder()
                 .publicationId(errorCodes1PublicationId)
-                .recordsPerFile(100)
+                .recordsPerFile(25000)
                 .automatic(false)
                 .build())
         .expect(201);
@@ -188,7 +188,7 @@ public class PublicationIT {
         .create(
             PublicationRequest.builder()
                 .publicationId(errorCodes1PublicationId)
-                .recordsPerFile(100)
+                .recordsPerFile(25000)
                 .automatic(false)
                 .build())
         .expect(400);
@@ -220,7 +220,7 @@ public class PublicationIT {
         .create(
             PublicationRequest.builder()
                 .publicationId(fullCycle1PublicationId)
-                .recordsPerFile(50)
+                .recordsPerFile(10000)
                 .automatic(false)
                 .build())
         .expect(201);
@@ -231,7 +231,7 @@ public class PublicationIT {
         .create(
             PublicationRequest.builder()
                 .publicationId(fullCycle2PublicationId)
-                .recordsPerFile(50)
+                .recordsPerFile(25000)
                 .automatic(false)
                 .build())
         .expect(201);
