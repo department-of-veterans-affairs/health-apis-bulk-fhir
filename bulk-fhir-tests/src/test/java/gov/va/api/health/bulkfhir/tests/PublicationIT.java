@@ -24,6 +24,7 @@ import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.mockserver.integration.ClientAndServer;
@@ -31,12 +32,13 @@ import org.mockserver.integration.ClientAndServer;
 @Slf4j
 public class PublicationIT {
 
+  @Before
   @After
   public void cleanUpPublications() {
     PublicationEndpoint endpoint = PublicationEndpoint.create();
-    endpoint.deletePublication("fullCycle-1");
-    endpoint.deletePublication("fullCycle-2");
-    endpoint.deletePublication("errorCodes-1");
+    endpoint.deletePublication(makeITPublicationName("fullCycle-1"));
+    endpoint.deletePublication(makeITPublicationName("fullCycle-2"));
+    endpoint.deletePublication(makeITPublicationName("errorCodes-1"));
   }
 
   @Test
@@ -64,6 +66,8 @@ public class PublicationIT {
   @Category({Local.class})
   public void fullCycle() {
     try (MockDataQuery dq = MockDataQuery.create()) {
+      String fullCycle1PublicationId = makeITPublicationName("fullCycle-1");
+      String fullCycle2PublicationId = makeITPublicationName("fullCycle-2");
       /* Nothing exists */
       PublicationEndpoint endpoint = PublicationEndpoint.create();
       assertThat(endpoint.listPublications().expect(200).expectListOf(String.class)).isEmpty();
@@ -72,52 +76,64 @@ public class PublicationIT {
           ResourceCount.builder().resourceType("Patient").maxRecordsPerPage(100).count(88).build());
       endpoint
           .create(
-              PublicationRequest.builder().publicationId("fullCycle-1").recordsPerFile(50).build())
+              PublicationRequest.builder()
+                  .publicationId(fullCycle1PublicationId)
+                  .recordsPerFile(50)
+                  .build())
           .expect(201);
       assertThat(endpoint.listPublications().expect(200).expectListOf(String.class))
-          .containsExactly("fullCycle-1");
+          .containsExactly(fullCycle1PublicationId);
       /* Create another one */
       endpoint
           .create(
-              PublicationRequest.builder().publicationId("fullCycle-2").recordsPerFile(50).build())
+              PublicationRequest.builder()
+                  .publicationId(fullCycle2PublicationId)
+                  .recordsPerFile(50)
+                  .build())
           .expect(201);
       assertThat(endpoint.listPublications().expect(200).expectListOf(String.class))
-          .containsExactlyInAnyOrder("fullCycle-1", "fullCycle-2");
+          .containsExactlyInAnyOrder(fullCycle1PublicationId, fullCycle2PublicationId);
       /* Clear Hung Publications :lyin: */
       endpoint
           .clearHungPublications(
               ClearHungRequest.builder().hangTime(Duration.parse("PT87600H")).build())
           .expect(200);
       assertThat(endpoint.listPublications().expect(200).expectListOf(String.class))
-          .containsExactlyInAnyOrder("fullCycle-1", "fullCycle-2");
+          .containsExactlyInAnyOrder(fullCycle1PublicationId, fullCycle2PublicationId);
       /* Get details for one */
       PublicationStatus status =
-          endpoint.getPublication("fullCycle-1").expect(200).expectValid(PublicationStatus.class);
-      assertThat(status.publicationId()).isEqualTo("fullCycle-1");
+          endpoint
+              .getPublication(fullCycle1PublicationId)
+              .expect(200)
+              .expectValid(PublicationStatus.class);
+      assertThat(status.publicationId()).isEqualTo(fullCycle1PublicationId);
       /* Build next file twice, to fully build the publication */
       FileBuildResponse fileBuildResponse =
           endpoint.buildNextFile().expect(202).expectValid(FileBuildResponse.class);
-      assertThat(fileBuildResponse.publicationId()).isEqualTo("fullCycle-1");
+      assertThat(fileBuildResponse.publicationId()).isEqualTo(fullCycle1PublicationId);
       assertThat(fileBuildResponse.fileId()).isEqualTo("Patient-0001");
       FileBuildResponse fileBuildResponse2 =
           endpoint.buildNextFile().expect(202).expectValid(FileBuildResponse.class);
-      assertThat(fileBuildResponse2.publicationId()).isEqualTo("fullCycle-1");
+      assertThat(fileBuildResponse2.publicationId()).isEqualTo(fullCycle1PublicationId);
       assertThat(fileBuildResponse2.fileId()).isEqualTo("Patient-0002");
       /* Get the status for the completed publication */
       BulkStatusEndpoint bulkStatusEndpoint = BulkStatusEndpoint.create();
       PublicationFileStatusResponse publicationStatusResponse =
           bulkStatusEndpoint
-              .getBulkStatus("I2-UZHTGVLJAFI4RMSCAYRQ5JENTLTEIKKGVI6UJM7WJMMGJCB44EHA0000")
+              .getBulkStatus(
+                  "I2-MCS24PV5NLA7QTLJWXT5FIUCL2YBFFE2OLTJLE644RWPXCPRFY4DT7"
+                      + "SWS5BMT2AQI6P2DGSK5UFD42B4ZSATICHSZ4FOXC2MFARYFPPX5YH6PNNKEPZBTCW2BRXQQXXP")
               .expect(200)
               .expectValid(PublicationFileStatusResponse.class);
       assertThat(publicationStatusResponse.extension().isPresent()).isTrue();
-      assertThat(publicationStatusResponse.extension().get().id()).isEqualTo("fullCycle-1");
+      assertThat(publicationStatusResponse.extension().get().id())
+          .isEqualTo(fullCycle1PublicationId);
       assertThat(publicationStatusResponse.output().size()).isEqualTo(2);
       /* Delete both */
-      endpoint.deletePublication("fullCycle-1").expect(200);
+      endpoint.deletePublication(fullCycle1PublicationId).expect(200);
       assertThat(endpoint.listPublications().expect(200).expectListOf(String.class))
-          .containsExactly("fullCycle-2");
-      endpoint.deletePublication("fullCycle-2").expect(200);
+          .containsExactly(fullCycle2PublicationId);
+      endpoint.deletePublication(fullCycle2PublicationId).expect(200);
       assertThat(endpoint.listPublications().expect(200).expectListOf(String.class)).isEmpty();
       /* Build next file when there are no more files to build */
       endpoint.buildNextFile().expect(204);
@@ -145,7 +161,12 @@ public class PublicationIT {
     }
   }
 
+  private String makeITPublicationName(String baseName) {
+    return PublicationIT.class.getSimpleName() + "-" + baseName;
+  }
+
   private void runErrorCodesTest() {
+    String errorCodes1PublicationId = makeITPublicationName("errorCodes-1");
     PublicationEndpoint endpoint = PublicationEndpoint.create();
     /* Does not exist */
     endpoint.getPublication("nope-" + System.currentTimeMillis()).expect(404);
@@ -157,7 +178,7 @@ public class PublicationIT {
     endpoint
         .create(
             PublicationRequest.builder()
-                .publicationId("errorCodes-1")
+                .publicationId(errorCodes1PublicationId)
                 .recordsPerFile(100)
                 .automatic(false)
                 .build())
@@ -165,14 +186,14 @@ public class PublicationIT {
     endpoint
         .create(
             PublicationRequest.builder()
-                .publicationId("errorCodes-1")
+                .publicationId(errorCodes1PublicationId)
                 .recordsPerFile(100)
                 .automatic(false)
                 .build())
         .expect(400);
     /* Delete it, then try to delete it again */
-    endpoint.deletePublication("errorCodes-1").expect(200);
-    endpoint.deletePublication("errorCodes-1").expect(404);
+    endpoint.deletePublication(errorCodes1PublicationId).expect(200);
+    endpoint.deletePublication(errorCodes1PublicationId).expect(404);
     /* Check error states for the bulk status endpoint */
     BulkStatusEndpoint bulkStatusEndpoint = BulkStatusEndpoint.create();
     bulkStatusEndpoint.getBulkStatus("CANTDECODEME").expect(404);
@@ -188,6 +209,8 @@ public class PublicationIT {
    * a live database.
    */
   private void runLiveFullCycleTest() {
+    String fullCycle1PublicationId = makeITPublicationName("fullCycle-1");
+    String fullCycle2PublicationId = makeITPublicationName("fullCycle-2");
     /* Nothing exists */
     PublicationEndpoint endpoint = PublicationEndpoint.create();
     assertThat(endpoint.listPublications().expect(200).expectListOf(String.class)).isEmpty();
@@ -195,35 +218,38 @@ public class PublicationIT {
     endpoint
         .create(
             PublicationRequest.builder()
-                .publicationId("fullCycle-1")
+                .publicationId(fullCycle1PublicationId)
                 .recordsPerFile(50)
                 .automatic(false)
                 .build())
         .expect(201);
     assertThat(endpoint.listPublications().expect(200).expectListOf(String.class))
-        .contains("fullCycle-1");
+        .contains(fullCycle1PublicationId);
     /* Create another one */
     endpoint
         .create(
             PublicationRequest.builder()
-                .publicationId("fullCycle-2")
+                .publicationId(fullCycle2PublicationId)
                 .recordsPerFile(50)
                 .automatic(false)
                 .build())
         .expect(201);
     assertThat(endpoint.listPublications().expect(200).expectListOf(String.class))
-        .contains("fullCycle-1", "fullCycle-2");
+        .contains(fullCycle1PublicationId, fullCycle2PublicationId);
     /* Clear Hung Publications :lyin: */
     endpoint
         .clearHungPublications(
             ClearHungRequest.builder().hangTime(Duration.parse("PT87600H")).build())
         .expect(200);
     assertThat(endpoint.listPublications().expect(200).expectListOf(String.class))
-        .contains("fullCycle-1", "fullCycle-2");
+        .contains(fullCycle1PublicationId, fullCycle2PublicationId);
     /* Get details for one */
     PublicationStatus status =
-        endpoint.getPublication("fullCycle-1").expect(200).expectValid(PublicationStatus.class);
-    assertThat(status.publicationId()).isEqualTo("fullCycle-1");
+        endpoint
+            .getPublication(fullCycle1PublicationId)
+            .expect(200)
+            .expectValid(PublicationStatus.class);
+    assertThat(status.publicationId()).isEqualTo(fullCycle1PublicationId);
     /* Call the next endpoint and validate a successful response is received */
     ExpectedResponse nextResponse = endpoint.buildNextFile();
     assertThat(nextResponse.response().getStatusCode()).isIn(202, 204);
@@ -233,10 +259,10 @@ public class PublicationIT {
         .getBulkStatus("I2-UZHTGVLJAFI4RMSCAYRQ5JEMTLTEIKKGVI6UJM7WJMMGJCB44EHA0000")
         .expect(404);
     /* Delete both */
-    endpoint.deletePublication("fullCycle-1").expect(200);
+    endpoint.deletePublication(fullCycle1PublicationId).expect(200);
     assertThat(endpoint.listPublications().expect(200).expectListOf(String.class))
-        .containsExactly("fullCycle-2");
-    endpoint.deletePublication("fullCycle-2").expect(200);
+        .containsExactly(fullCycle2PublicationId);
+    endpoint.deletePublication(fullCycle2PublicationId).expect(200);
     assertThat(endpoint.listPublications().expect(200).expectListOf(String.class)).isEmpty();
     /* Build next file when there are no more files to build */
     endpoint.buildNextFile().expect(204);
