@@ -201,7 +201,8 @@ public class PublicationIT {
     bulkStatusEndpoint.getBulkStatusWithoutHeader("DOESNTMATTER").expect(400);
     /* Valid decodable id with no data */
     bulkStatusEndpoint
-        .getBulkStatus("I2-UZHTGVLJAFI4RMSCAYRQ5JENTLTEIKKGVI6UJM7WJMMGJCB44EHA0000")
+        .getBulkStatus("I2-MCS24PV5NLA7QTLJWXT5FIUCL2YBFFE2OLTJLE644RWP"
+                + "XCPRFY4DIYCN37E5AQY7CALSCBF3J4TEP2XMECSAX5M5FQ7UQX6U76KX76Q0")
         .expect(404);
   }
 
