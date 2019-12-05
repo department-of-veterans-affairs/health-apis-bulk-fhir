@@ -94,4 +94,17 @@ databaseChangeLog:
                   defaultValue: 0
                   constraints:
                     nullable: false
-
+  - changeSet:
+      id: 4
+      author: shanktopus
+      changes:
+        - addColumn:
+            tableName: Status
+            schemaName: app
+            columns:
+              - column:
+                  name: automatic
+                  type: boolean
+                  defaultValue: true
+                  constraints:
+                    nullable: false

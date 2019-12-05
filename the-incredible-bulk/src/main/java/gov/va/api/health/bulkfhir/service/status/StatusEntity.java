@@ -78,6 +78,10 @@ public class StatusEntity {
   @Column(name = "version")
   private int version;
 
+  /** `true` If this is a publication that should be built automatically, `false` otherwise. */
+  @Column(name = "automatic")
+  private boolean automatic;
+
   private Optional<Instant> asInstant(long maybeEpoch) {
     if (maybeEpoch <= 0) {
       return Optional.empty();

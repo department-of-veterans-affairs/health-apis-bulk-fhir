@@ -18,6 +18,7 @@ public class SystemDefinitions {
     String url = "https://dev-api.va.gov";
     return SystemDefinition.builder()
         .bulkFhir(serviceDefinition("incredible-bulk", url, 443, "/services/fhir/v0/dstu2"))
+        .internalBulkFhir(serviceDefinition("internal", url, 443, "/bulk-fhir"))
         .build();
   }
 
@@ -25,7 +26,8 @@ public class SystemDefinitions {
   private static SystemDefinition local() {
     String url = "http://localhost";
     return SystemDefinition.builder()
-        .bulkFhir(serviceDefinition("incredible-bulk", url, 8091, ""))
+        .bulkFhir(serviceDefinition("incredible-bulk", url, 8091, "/dstu2"))
+        .internalBulkFhir(serviceDefinition("internal", url, 8091, ""))
         .build();
   }
 
@@ -34,6 +36,7 @@ public class SystemDefinitions {
     String url = "https://api.va.gov";
     return SystemDefinition.builder()
         .bulkFhir(serviceDefinition("incredible-bulk", url, 443, "/services/fhir/v0/dstu2"))
+        .internalBulkFhir(serviceDefinition("internal", url, 443, "/bulk-fhir"))
         .build();
   }
 
@@ -42,6 +45,7 @@ public class SystemDefinitions {
     String url = "https://blue.qa.lighthouse.va.gov";
     return SystemDefinition.builder()
         .bulkFhir(serviceDefinition("incredible-bulk", url, 443, "/fhir/v0/dstu2"))
+        .internalBulkFhir(serviceDefinition("internal", url, 443, "/bulk-fhir"))
         .build();
   }
 
@@ -60,6 +64,7 @@ public class SystemDefinitions {
     String url = "https://blue.staging.lighthouse.va.gov";
     return SystemDefinition.builder()
         .bulkFhir(serviceDefinition("incredible-bulk", url, 443, "/fhir/v0/dstu2"))
+        .internalBulkFhir(serviceDefinition("internal", url, 443, "/bulk-fhir"))
         .build();
   }
 
@@ -68,6 +73,7 @@ public class SystemDefinitions {
     String url = "https://blue.staging-lab.lighthouse.va.gov";
     return SystemDefinition.builder()
         .bulkFhir(serviceDefinition("incredible-bulk", url, 443, "/fhir/v0/dstu2"))
+        .internalBulkFhir(serviceDefinition("internal", url, 443, "/bulk-fhir"))
         .build();
   }
 
