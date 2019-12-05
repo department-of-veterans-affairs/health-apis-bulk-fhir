@@ -1,6 +1,7 @@
 package gov.va.api.health.bulkfhir.service.controller.publication;
 
 import static gov.va.api.health.bulkfhir.service.controller.publication.PublicationExceptions.assertDoesNotExist;
+import static gov.va.api.health.bulkfhir.service.controller.publication.PublicationExceptions.assertFileCount;
 import static gov.va.api.health.bulkfhir.service.controller.publication.PublicationExceptions.assertPublicationFound;
 import static gov.va.api.health.bulkfhir.service.controller.publication.PublicationExceptions.assertRecordsPerFile;
 
@@ -25,6 +26,7 @@ import javax.validation.Valid;
 import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -45,6 +47,8 @@ import org.springframework.web.bind.annotation.RestController;
 )
 class InternalPublicationController {
 
+  private final int maxFileCount;
+
   private final FileBuilder fileBuilder;
 
   private final FileToBuildManager fileToBuildManager;
@@ -57,11 +61,13 @@ class InternalPublicationController {
 
   @Builder
   InternalPublicationController(
+      @Value("${incrediblebulk.publication-max-file-count}") int maxFileCount,
       @Autowired FileBuilder fileBuilder,
       @Autowired StatusRepository repository,
       @Autowired DataQueryBatchClient dataQuery,
       @Autowired FileToBuildManager fileToBuildManager,
       @Autowired(required = false) PublicationStatusTransformer transformer) {
+    this.maxFileCount = maxFileCount;
     this.fileBuilder = fileBuilder;
     this.repository = repository;
     this.dataQuery = dataQuery;
@@ -100,6 +106,7 @@ class InternalPublicationController {
     assertDoesNotExist(existing != 0, request.publicationId());
     var resources = dataQuery.requestPatientCount();
     assertRecordsPerFile(request.recordsPerFile(), resources.maxRecordsPerPage());
+    assertFileCount(request.recordsPerFile(), resources.count(), maxFileCount);
     var publicationEpoch = Instant.now().toEpochMilli();
     var fileName = "Patient-%04d";
     int page = 1;
