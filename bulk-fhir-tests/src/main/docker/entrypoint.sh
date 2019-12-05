@@ -96,6 +96,7 @@ setupForTests() {
     -Dsentinel.incredible-bulk.url=https://$K8S_LOAD_BALANCER \
     -Dsentinel.internal.url=https://$K8S_LOAD_BALANCER \
     -Dsentinel.incredible-bulk.api-path=$BULK_FHIR_API_PATH \
+    -Dinternal=$INTERNAL_TOKEN \
     -Dbulk-token=$BULK_TOKEN"
 }
 
