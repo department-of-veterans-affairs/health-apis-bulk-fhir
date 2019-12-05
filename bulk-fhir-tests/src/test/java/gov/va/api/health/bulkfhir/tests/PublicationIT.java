@@ -18,6 +18,7 @@ import gov.va.api.health.sentinel.Environment;
 import gov.va.api.health.sentinel.ExpectedResponse;
 import gov.va.api.health.sentinel.categories.Local;
 import io.restassured.http.Header;
+import io.restassured.http.Headers;
 import io.restassured.http.Method;
 import java.time.Duration;
 import lombok.NoArgsConstructor;
@@ -211,9 +212,9 @@ public class PublicationIT {
   private void runLiveFullCycleTest() {
     String fullCycle1PublicationId = makeItPublicationName("fullCycle-1");
     String fullCycle2PublicationId = makeItPublicationName("fullCycle-2");
-    /* Nothing exists */
     PublicationEndpoint endpoint = PublicationEndpoint.create();
-    assertThat(endpoint.listPublications().expect(200).expectListOf(String.class)).isEmpty();
+    assertThat(endpoint.listPublications().expect(200).expectListOf(String.class))
+        .doesNotContain(fullCycle1PublicationId, fullCycle2PublicationId);
     /* Create one */
     endpoint
         .create(
@@ -261,9 +262,10 @@ public class PublicationIT {
     /* Delete both */
     endpoint.deletePublication(fullCycle1PublicationId).expect(200);
     assertThat(endpoint.listPublications().expect(200).expectListOf(String.class))
-        .containsExactly(fullCycle2PublicationId);
+        .doesNotContain(fullCycle1PublicationId);
     endpoint.deletePublication(fullCycle2PublicationId).expect(200);
-    assertThat(endpoint.listPublications().expect(200).expectListOf(String.class)).isEmpty();
+    assertThat(endpoint.listPublications().expect(200).expectListOf(String.class))
+        .doesNotContain(fullCycle1PublicationId, fullCycle2PublicationId);
     /* Build next file when there are no more files to build */
     endpoint.buildNextFile().expect(204);
   }
@@ -371,16 +373,25 @@ public class PublicationIT {
   @NoArgsConstructor(staticName = "create")
   static class BulkStatusEndpoint {
 
+    private Headers acceptAndTokenHeader() {
+      return new Headers(acceptHeader(), bulkToken());
+    }
+
     private Header acceptHeader() {
       return new Header("accept", "application/json");
     }
 
+    private Header bulkToken() {
+      return new Header("client-key", System.getProperty("bulk-token", "not-supplied"));
+    }
+
     ExpectedResponse getBulkStatus(String encodedId) {
+      Headers d = new Headers();
       return ExpectedResponse.of(
           TestClients.bulkFhir()
               .service()
               .requestSpecification()
-              .header(acceptHeader())
+              .headers(acceptAndTokenHeader())
               .contentType("application/json")
               .request(Method.GET, url() + "/" + encodedId));
     }
@@ -390,6 +401,7 @@ public class PublicationIT {
           TestClients.bulkFhir()
               .service()
               .requestSpecification()
+              .header(bulkToken())
               .contentType("application/json")
               .request(Method.GET, url() + "/" + encodedId));
     }
