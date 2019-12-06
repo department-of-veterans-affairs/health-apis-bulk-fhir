@@ -265,19 +265,8 @@ public class PublicationIT {
     endpoint.buildFile(fullCycle1PublicationId, "Patient-0001").expect(202);
     /* Wait for at most 20 seconds for the file build to complete */
     waitForFileBuildToComplete(endpoint, fullCycle1PublicationId);
-    if (Environment.get() != Environment.LOCAL) {
-      /*
-       * Make sure the Patient-0001 file is written to S3 when not in a local environment
-       */
-      bulkPublicEndpoint.getBulkFile(fullCycle1PublicationId, "Patient-0001.ndjson").expect(200);
-    } else {
-      /*
-       * When running locally the file will be written to the target directory
-       */
-      Path filePath = Paths.get("./target/Patient-0001.ndjson");
-      assertThat(Files.exists(filePath)).isTrue();
-      Files.delete(filePath);
-    }
+    verifyFileIsWritten(fullCycle1PublicationId, bulkPublicEndpoint);
+
     /* Call the next endpoint and validate a successful response is received */
     ExpectedResponse nextResponse = endpoint.buildNextFile();
     assertThat(nextResponse.response().getStatusCode()).isIn(202, 204);
@@ -294,6 +283,23 @@ public class PublicationIT {
         .doesNotContain(fullCycle1PublicationId, fullCycle2PublicationId);
     /* Build next file when there are no more files to build */
     endpoint.buildNextFile().expect(204);
+  }
+
+  private void verifyFileIsWritten(
+      String fullCycle1PublicationId, BulkPublicEndpoint bulkPublicEndpoint) throws IOException {
+    if (Environment.get() != Environment.LOCAL) {
+      /*
+       * Make sure the Patient-0001 file is written to S3 when not in a local environment
+       */
+      bulkPublicEndpoint.getBulkFile(fullCycle1PublicationId, "Patient-0001.ndjson").expect(200);
+    } else {
+      /*
+       * When running locally the file will be written to the target directory
+       */
+      Path filePath = Paths.get("./target/Patient-0001.ndjson");
+      assertThat(Files.exists(filePath)).isTrue();
+      Files.delete(filePath);
+    }
   }
 
   private void waitForFileBuildToComplete(PublicationEndpoint endpoint, String publicationId)
