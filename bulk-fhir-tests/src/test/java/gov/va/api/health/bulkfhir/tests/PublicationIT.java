@@ -22,7 +22,6 @@ import gov.va.api.health.sentinel.categories.Local;
 import io.restassured.http.Header;
 import io.restassured.http.Headers;
 import io.restassured.http.Method;
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -154,7 +153,7 @@ public class PublicationIT {
 
   @Test
   @Category({LabBulkFhir.class, Local.class, ProdBulkFhir.class})
-  public void fullCycleWithLiveData() throws InterruptedException, IOException {
+  public void fullCycleWithLiveData() {
     /*
      * If we are in the local environment we have to mock data query, otherwise a real one already exists.
      */
@@ -218,7 +217,7 @@ public class PublicationIT {
    * This is a similar version of the fullCycle test, but desensitized to not interfere when run on
    * a live database.
    */
-  private void runLiveFullCycleTest() throws InterruptedException, IOException {
+  private void runLiveFullCycleTest() {
     String fullCycle1PublicationId = createPublicationName("fullCycle-1");
     String fullCycle2PublicationId = createPublicationName("fullCycle-2");
     PublicationEndpoint endpoint = PublicationEndpoint.create();
@@ -285,8 +284,9 @@ public class PublicationIT {
     endpoint.buildNextFile().expect(204);
   }
 
+  @SneakyThrows
   private void verifyFileIsWritten(
-      String fullCycle1PublicationId, BulkPublicEndpoint bulkPublicEndpoint) throws IOException {
+      String fullCycle1PublicationId, BulkPublicEndpoint bulkPublicEndpoint) {
     if (Environment.get() != Environment.LOCAL) {
       /*
        * Make sure the Patient-0001 file is written to S3 when not in a local environment
@@ -302,10 +302,10 @@ public class PublicationIT {
     }
   }
 
-  private void waitForFileBuildToComplete(PublicationEndpoint endpoint, String publicationId)
-      throws InterruptedException {
+  @SneakyThrows
+  private void waitForFileBuildToComplete(PublicationEndpoint endpoint, String publicationId) {
     int i = 0;
-    while (i < 20) {
+    while (i < 40) {
       PublicationStatus status =
           endpoint.getPublication(publicationId).expect(200).expectValid(PublicationStatus.class);
       /*
