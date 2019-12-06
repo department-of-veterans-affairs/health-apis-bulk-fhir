@@ -77,6 +77,7 @@
                 <argument>-Ddataquery.internal-bulk-path=/internal/bulk</argument>
                 <argument>-Ddataquery.access-key=ignored</argument>
                 <argument>-Danonymization.salt=sosalt</argument>
+                <argument>-Danonymization.uuid-seed=d54ecda1-1dfe-5f8e-a151-af43d6d37fb8</argument>
                 <argument>-Dspring.config.location=classpath:/application.properties,file:${project.basedir}/config/secrets.properties</argument>
                 <argument>org.springframework.boot.loader.PropertiesLauncher</argument>
               </arguments>

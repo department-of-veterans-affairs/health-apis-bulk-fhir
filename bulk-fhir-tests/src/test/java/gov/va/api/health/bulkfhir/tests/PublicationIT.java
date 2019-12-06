@@ -5,8 +5,10 @@ import static org.mockserver.integration.ClientAndServer.startClientAndServer;
 import static org.mockserver.model.HttpRequest.request;
 import static org.mockserver.model.HttpResponse.response;
 
+import gov.va.api.health.argonaut.api.resources.Patient;
 import gov.va.api.health.autoconfig.configuration.JacksonConfig;
 import gov.va.api.health.bulkfhir.api.bulkstatus.PublicationFileStatusResponse;
+import gov.va.api.health.bulkfhir.api.internal.BuildStatus;
 import gov.va.api.health.bulkfhir.api.internal.ClearHungRequest;
 import gov.va.api.health.bulkfhir.api.internal.FileBuildResponse;
 import gov.va.api.health.bulkfhir.api.internal.PublicationRequest;
@@ -20,10 +22,14 @@ import gov.va.api.health.sentinel.categories.Local;
 import io.restassured.http.Header;
 import io.restassured.http.Headers;
 import io.restassured.http.Method;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.Duration;
 import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.assertj.core.util.Lists;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -37,9 +43,13 @@ public class PublicationIT {
   @After
   public void cleanUpPublications() {
     PublicationEndpoint endpoint = PublicationEndpoint.create();
-    endpoint.deletePublication(makeItPublicationName("fullCycle-1"));
-    endpoint.deletePublication(makeItPublicationName("fullCycle-2"));
-    endpoint.deletePublication(makeItPublicationName("errorCodes-1"));
+    endpoint.deletePublication(createPublicationName("fullCycle-1"));
+    endpoint.deletePublication(createPublicationName("fullCycle-2"));
+    endpoint.deletePublication(createPublicationName("errorCodes-1"));
+  }
+
+  private String createPublicationName(String baseName) {
+    return PublicationIT.class.getSimpleName() + "-" + baseName;
   }
 
   @Test
@@ -67,8 +77,8 @@ public class PublicationIT {
   @Category({Local.class})
   public void fullCycle() {
     try (MockDataQuery dq = MockDataQuery.create()) {
-      String fullCycle1PublicationId = makeItPublicationName("fullCycle-1");
-      String fullCycle2PublicationId = makeItPublicationName("fullCycle-2");
+      String fullCycle1PublicationId = createPublicationName("fullCycle-1");
+      String fullCycle2PublicationId = createPublicationName("fullCycle-2");
       /* Nothing exists */
       PublicationEndpoint endpoint = PublicationEndpoint.create();
       assertThat(endpoint.listPublications().expect(200).expectListOf(String.class)).isEmpty();
@@ -118,9 +128,9 @@ public class PublicationIT {
       assertThat(fileBuildResponse2.publicationId()).isEqualTo(fullCycle1PublicationId);
       assertThat(fileBuildResponse2.fileId()).isEqualTo("Patient-0002");
       /* Get the status for the completed publication */
-      BulkStatusEndpoint bulkStatusEndpoint = BulkStatusEndpoint.create();
+      BulkPublicEndpoint bulkPublicEndpoint = BulkPublicEndpoint.create();
       PublicationFileStatusResponse publicationStatusResponse =
-          bulkStatusEndpoint
+          bulkPublicEndpoint
               .getBulkStatus(
                   "I2-MCS24PV5NLA7QTLJWXT5FIUCL2YBFFE2OLTJLE644RWPXCPRFY4DT7"
                       + "SWS5BMT2AQI6P2DGSK5UFD42B4ZSATICHSZ4FOXC2MFARYFPPX5YH6PNNKEPZBTCW2BRXQQXXP")
@@ -162,12 +172,8 @@ public class PublicationIT {
     }
   }
 
-  private String makeItPublicationName(String baseName) {
-    return PublicationIT.class.getSimpleName() + "-" + baseName;
-  }
-
   private void runErrorCodesTest() {
-    String errorCodes1PublicationId = makeItPublicationName("errorCodes-1");
+    String errorCodes1PublicationId = createPublicationName("errorCodes-1");
     PublicationEndpoint endpoint = PublicationEndpoint.create();
     /* Does not exist */
     endpoint.getPublication("nope-" + System.currentTimeMillis()).expect(404);
@@ -196,11 +202,11 @@ public class PublicationIT {
     endpoint.deletePublication(errorCodes1PublicationId).expect(200);
     endpoint.deletePublication(errorCodes1PublicationId).expect(404);
     /* Check error states for the bulk status endpoint */
-    BulkStatusEndpoint bulkStatusEndpoint = BulkStatusEndpoint.create();
-    bulkStatusEndpoint.getBulkStatus("CANTDECODEME").expect(404);
-    bulkStatusEndpoint.getBulkStatusWithoutHeader("DOESNTMATTER").expect(400);
+    BulkPublicEndpoint bulkPublicEndpoint = BulkPublicEndpoint.create();
+    bulkPublicEndpoint.getBulkStatus("CANTDECODEME").expect(404);
+    bulkPublicEndpoint.getBulkStatusWithoutHeader("DOESNTMATTER").expect(400);
     /* Valid decodable id with no data */
-    bulkStatusEndpoint
+    bulkPublicEndpoint
         .getBulkStatus(
             "I2-MCS24PV5NLA7QTLJWXT5FIUCL2YBFFE2OLTJLE644RWP"
                 + "XCPRFY4DIYCN37E5AQY7CALSCBF3J4TEP2XMECSAX5M5FQ7UQX6U76KX76Q0")
@@ -212,8 +218,8 @@ public class PublicationIT {
    * a live database.
    */
   private void runLiveFullCycleTest() {
-    String fullCycle1PublicationId = makeItPublicationName("fullCycle-1");
-    String fullCycle2PublicationId = makeItPublicationName("fullCycle-2");
+    String fullCycle1PublicationId = createPublicationName("fullCycle-1");
+    String fullCycle2PublicationId = createPublicationName("fullCycle-2");
     PublicationEndpoint endpoint = PublicationEndpoint.create();
     assertThat(endpoint.listPublications().expect(200).expectListOf(String.class))
         .doesNotContain(fullCycle1PublicationId, fullCycle2PublicationId);
@@ -253,12 +259,18 @@ public class PublicationIT {
             .expect(200)
             .expectValid(PublicationStatus.class);
     assertThat(status.publicationId()).isEqualTo(fullCycle1PublicationId);
+    BulkPublicEndpoint bulkPublicEndpoint = BulkPublicEndpoint.create();
+    /* Build the first file for the first publication here */
+    endpoint.buildFile(fullCycle1PublicationId, "Patient-0001").expect(202);
+    /* Wait for at most 20 seconds for the file build to complete */
+    waitForFileBuildToComplete(endpoint, fullCycle1PublicationId);
+    verifyFileIsWritten(fullCycle1PublicationId, bulkPublicEndpoint);
+
     /* Call the next endpoint and validate a successful response is received */
     ExpectedResponse nextResponse = endpoint.buildNextFile();
     assertThat(nextResponse.response().getStatusCode()).isIn(202, 204);
     /* Get the status for a publication that doesn't exist */
-    BulkStatusEndpoint bulkStatusEndpoint = BulkStatusEndpoint.create();
-    bulkStatusEndpoint
+    bulkPublicEndpoint
         .getBulkStatus("I2-UZHTGVLJAFI4RMSCAYRQ5JEMTLTEIKKGVI6UJM7WJMMGJCB44EHA0000")
         .expect(404);
     /* Delete both */
@@ -270,6 +282,46 @@ public class PublicationIT {
         .doesNotContain(fullCycle1PublicationId, fullCycle2PublicationId);
     /* Build next file when there are no more files to build */
     endpoint.buildNextFile().expect(204);
+  }
+
+  @SneakyThrows
+  private void verifyFileIsWritten(
+      String fullCycle1PublicationId, BulkPublicEndpoint bulkPublicEndpoint) {
+    if (Environment.get() != Environment.LOCAL) {
+      /*
+       * Make sure the Patient-0001 file is written to S3 when not in a local environment
+       */
+      bulkPublicEndpoint.getBulkFile(fullCycle1PublicationId, "Patient-0001.ndjson").expect(200);
+    } else {
+      /*
+       * When running locally the file will be written to the target directory
+       */
+      Path filePath = Paths.get("./target/Patient-0001.ndjson");
+      assertThat(Files.exists(filePath)).isTrue();
+      Files.delete(filePath);
+    }
+  }
+
+  @SneakyThrows
+  private void waitForFileBuildToComplete(PublicationEndpoint endpoint, String publicationId) {
+    int i = 0;
+    while (i < 40) {
+      PublicationStatus status =
+          endpoint.getPublication(publicationId).expect(200).expectValid(PublicationStatus.class);
+      /*
+       * See if the Patient-0001 file is completed
+       */
+      if (status
+          .files()
+          .stream()
+          .anyMatch(
+              ((file) ->
+                  file.fileId().equals("Patient-0001") && file.status() == BuildStatus.COMPLETE))) {
+        break;
+      }
+      i++;
+      Thread.sleep(1000);
+    }
   }
 
   @NoArgsConstructor(staticName = "create")
@@ -289,16 +341,32 @@ public class PublicationIT {
                   .withStatusCode(200)
                   .withHeader("Content-Type", "application/json")
                   .withBody(json(status)));
+      dq.when(request().withPath("/internal/bulk/Patient"))
+          .respond(
+              response()
+                  .withStatusCode(200)
+                  .withHeader("Content-Type", "application/json")
+                  .withBody(json(Lists.newArrayList(Patient.builder().id("12345V67890").build()))));
     }
 
     @SneakyThrows
-    private String json(ResourceCount status) {
+    private String json(Object status) {
       return JacksonConfig.createMapper().writeValueAsString(status);
     }
   }
 
   @NoArgsConstructor(staticName = "create")
   static class PublicationEndpoint {
+
+    ExpectedResponse buildFile(String publicationId, String fileId) {
+      return ExpectedResponse.of(
+          TestClients.bulkFhir()
+              .service()
+              .requestSpecification()
+              .header(internalAccessToken())
+              .contentType("application/json")
+              .request(Method.POST, url() + "/" + publicationId + "/file/" + fileId));
+    }
 
     ExpectedResponse buildNextFile() {
       return ExpectedResponse.of(
@@ -373,7 +441,7 @@ public class PublicationIT {
   }
 
   @NoArgsConstructor(staticName = "create")
-  static class BulkStatusEndpoint {
+  static class BulkPublicEndpoint {
 
     private Headers acceptAndTokenHeader() {
       return new Headers(acceptHeader(), bulkToken());
@@ -385,6 +453,16 @@ public class PublicationIT {
 
     private Header bulkToken() {
       return new Header("client-key", System.getProperty("bulk-token", "not-supplied"));
+    }
+
+    ExpectedResponse getBulkFile(String publicationId, String fileId) {
+      return ExpectedResponse.of(
+          TestClients.bulkFhir()
+              .service()
+              .requestSpecification()
+              .headers(acceptAndTokenHeader())
+              .contentType("application/json")
+              .request(Method.GET, url() + "/publication/" + publicationId + "/" + fileId));
     }
 
     ExpectedResponse getBulkStatus(String encodedId) {
