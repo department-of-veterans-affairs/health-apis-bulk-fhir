@@ -79,14 +79,11 @@ Read more
 ##### Notes
 - _Data Query_ is responsible for enabling access to bulk FHIR compliant records through VA internal APIs that are protected from general access.
 - _The Incredible Bulk_ communicates with _Data Query_ through internal, protected APIs.
-  - internal calls to _data query_ require the `DATA_QUERY_INTERNAL_ACCESS_KEY` found in the 
-    bulk-fhir-deployment
+  - internal calls to _data query_ require the `DATA_QUERY_INTERNAL_ACCESS_KEY` found in the [deployment unit](https://github.com/department-of-veterans-affairs/health-apis-bulk-fhir-deployment)
 - _The Incredible Bulk_ is responsible for Publication management and anonymization.
-  - internal calls to the publication endpoint require the `KONG_INTERNAL_PROTECTED_OP_TOKENS` found in the 
-    bulk-fhir-deployment
+  - internal calls to the publication endpoint require the `KONG_INTERNAL_PROTECTED_OP_TOKENS` found in the [deployment unit](https://github.com/department-of-veterans-affairs/health-apis-bulk-fhir-deployment)
 - Publication files are created by _The Incredible Bulk_ but served to consumers directly from S3 (via Kong)
-  - Consumer access through Kong requires the sharing of the `KONG_PUBLIC_PROTECTED_OP_TOKENS` found in the 
-    bulk-fhir-deployment
+  - Consumer access through Kong requires the sharing of the `KONG_PUBLIC_PROTECTED_OP_TOKENS` found in the [deployment unit](https://github.com/department-of-veterans-affairs/health-apis-bulk-fhir-deployment) 
 - Timers are implemented using Kubernetes batch CronJob containers that periodically poke Publication endpoints.
   
 When building files, _The Incredible Bulk_ will gather data from _Data Query_ where it will be anonymized and written to S3.
