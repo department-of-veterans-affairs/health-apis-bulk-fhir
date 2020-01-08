@@ -7,7 +7,7 @@
     <version>4.0.4</version>
   </parent>
   <artifactId>bulk-fhir-parent</artifactId>
-  <version>1.0.34</version>
+  <version>1.0.35-SNAPSHOT</version>
   <packaging>pom</packaging>
   <modules>
     <module>bulk-fhir-api</module>
