@@ -18,7 +18,7 @@ public class PatientAnonymizer implements Function<Patient, Patient> {
   /** Anonymize a Patient Record. */
   public Patient apply(Patient resource) {
     String anonymizedId = idGenerator.generateIdFrom(resource.id());
-    /**
+    /*
      * Lets get a repeatable seed from our patient record, so that we can create replicable
      * Synthetic data. For our seed, we will strip the V out of the ICN, and use the resulting long.
      * If we cannot parse the ICN, we create our seed from the string hash.

@@ -41,8 +41,7 @@ class AnonymizerPatientSamples {
           .total(records.size())
           .link(asList(links))
           .entry(
-              records
-                  .stream()
+              records.stream()
                   .map(
                       c ->
                           Patient.Entry.builder()
@@ -138,8 +137,7 @@ class AnonymizerPatientSamples {
           .total(records.size())
           .link(asList(links))
           .entry(
-              records
-                  .stream()
+              records.stream()
                   .map(
                       c ->
                           Patient.Entry.builder()
