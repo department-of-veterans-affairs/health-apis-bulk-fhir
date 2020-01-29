@@ -34,9 +34,8 @@ import org.springframework.web.bind.annotation.RestController;
 @Validated
 @RestController
 @RequestMapping(
-  value = {"dstu2/Patient"},
-  produces = {"application/json"}
-)
+    value = {"dstu2/Patient"},
+    produces = {"application/json"})
 class BulkPatientController {
 
   /** The list of valid output formats for an $export request. */

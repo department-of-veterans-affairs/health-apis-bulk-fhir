@@ -42,9 +42,8 @@ import org.springframework.web.bind.annotation.RestController;
 @Validated
 @RestController
 @RequestMapping(
-  value = {"internal/publication"},
-  produces = {"application/json"}
-)
+    value = {"internal/publication"},
+    produces = {"application/json"})
 class InternalPublicationController {
 
   private final int maxFileCount;
@@ -144,8 +143,7 @@ class InternalPublicationController {
     var entities = repository.findByStatusInProgress();
     var nowEpoch = Instant.now().toEpochMilli();
     var resetEntities =
-        entities
-            .stream()
+        entities.stream()
             .filter(Objects::nonNull)
             .filter(e -> (nowEpoch - e.buildStartEpoch()) > allowedHangTime.toMillis())
             .collect(Collectors.toList());
