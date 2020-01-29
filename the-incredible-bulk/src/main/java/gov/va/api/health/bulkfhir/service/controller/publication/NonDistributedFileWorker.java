@@ -83,8 +83,7 @@ public class NonDistributedFileWorker implements FileBuildWorker {
       List<Patient> patients = fetchPatients(claim);
       writePatients(
           claim,
-          patients
-              .stream()
+          patients.stream()
               .map(patientAnonymizer())
               .map(jsonStringConverter())
               .filter(Objects::nonNull));

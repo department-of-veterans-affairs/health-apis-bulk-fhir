@@ -11,15 +11,14 @@ import org.springframework.test.context.junit4.SpringRunner;
 @RunWith(SpringRunner.class)
 @SpringBootTest
 @TestPropertySource(
-  properties = {
-    "spring.datasource.driver-class-name=org.h2.Driver",
-    "spring.datasource.password=unset",
-    "spring.datasource.url=jdbc:h2:mem:bulk",
-    "spring.datasource.username=unset",
-    "spring.h2.console.enabled=true",
-    "spring.jpa.properties.hibernate.globally_quoted_identifiers=false",
-  }
-)
+    properties = {
+      "spring.datasource.driver-class-name=org.h2.Driver",
+      "spring.datasource.password=unset",
+      "spring.datasource.url=jdbc:h2:mem:bulk",
+      "spring.datasource.username=unset",
+      "spring.h2.console.enabled=true",
+      "spring.jpa.properties.hibernate.globally_quoted_identifiers=false",
+    })
 public class ApplicationTest {
 
   @Test

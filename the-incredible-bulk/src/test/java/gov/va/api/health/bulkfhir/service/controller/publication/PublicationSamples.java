@@ -128,8 +128,7 @@ class PublicationSamples {
 
     List<StatusEntity> entitiesInProgress() {
       AtomicInteger id = new AtomicInteger(0);
-      return entities(() -> "IP" + id.incrementAndGet(), Instant.now())
-          .stream()
+      return entities(() -> "IP" + id.incrementAndGet(), Instant.now()).stream()
           // Imitate the database query
           .filter(e -> e.buildStartEpoch() > 0 && e.buildCompleteEpoch() == 0)
           .collect(Collectors.toList());

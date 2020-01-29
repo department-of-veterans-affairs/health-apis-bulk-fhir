@@ -4,7 +4,7 @@
   <parent>
     <groupId>gov.va.api.health</groupId>
     <artifactId>health-apis-parent</artifactId>
-    <version>4.0.4</version>
+    <version>5.0.0</version>
   </parent>
   <artifactId>bulk-fhir-parent</artifactId>
   <version>1.0.35-SNAPSHOT</version>

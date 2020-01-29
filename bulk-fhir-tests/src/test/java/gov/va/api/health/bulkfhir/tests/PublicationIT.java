@@ -311,9 +311,7 @@ public class PublicationIT {
       /*
        * See if the Patient-0001 file is completed
        */
-      if (status
-          .files()
-          .stream()
+      if (status.files().stream()
           .anyMatch(
               ((file) ->
                   file.fileId().equals("Patient-0001") && file.status() == BuildStatus.COMPLETE))) {

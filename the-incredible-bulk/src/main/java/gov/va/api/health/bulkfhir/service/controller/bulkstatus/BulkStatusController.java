@@ -30,9 +30,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @Loggable
 @RequestMapping(
-  value = {"dstu2/bulk"},
-  produces = {"application/json"}
-)
+    value = {"dstu2/bulk"},
+    produces = {"application/json"})
 public class BulkStatusController {
 
   /** The list of valid values for the Accept header for an $export request. */
@@ -67,8 +66,7 @@ public class BulkStatusController {
    */
   private List<PublicationFileStatusResponse.FileLocation> createFileOutputList(
       List<StatusEntity> fileStatuses) {
-    return fileStatuses
-        .stream()
+    return fileStatuses.stream()
         .map(
             (file) ->
                 PublicationFileStatusResponse.FileLocation.builder()
