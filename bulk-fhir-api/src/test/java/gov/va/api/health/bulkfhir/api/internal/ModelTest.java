@@ -9,6 +9,7 @@ import gov.va.api.health.bulkfhir.api.internal.PublicationStatus.FileStatus;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
 
@@ -44,36 +45,35 @@ public class ModelTest {
             .publicationId("HokeyPokey123")
             .recordsPerFile(100)
             .creationDate(now.minus(24, HOURS))
-            .file(
-                FileStatus.builder()
-                    .fileId("f1")
-                    .firstRecord(0)
-                    .lastRecord(99)
-                    .buildStartTime(now.minus(23, HOURS))
-                    .buildCompleteTime(now.minus(22, HOURS))
-                    .status(BuildStatus.COMPLETE)
-                    .buildProcessorId("incredible-bulk-1")
-                    .build())
-            .file(
-                FileStatus.builder()
-                    .fileId("f2")
-                    .firstRecord(100)
-                    .lastRecord(199)
-                    .buildStartTime(now.minus(2, HOURS))
-                    .buildCompleteTime(null)
-                    .status(BuildStatus.IN_PROGRESS)
-                    .buildProcessorId("incredible-bulk-2")
-                    .build())
-            .file(
-                FileStatus.builder()
-                    .fileId("f3")
-                    .firstRecord(200)
-                    .lastRecord(299)
-                    .buildStartTime(null)
-                    .buildCompleteTime(null)
-                    .status(BuildStatus.NOT_STARTED)
-                    .buildProcessorId(null)
-                    .build())
+            .files(
+                List.of(
+                    FileStatus.builder()
+                        .fileId("f1")
+                        .firstRecord(0)
+                        .lastRecord(99)
+                        .buildStartTime(now.minus(23, HOURS))
+                        .buildCompleteTime(now.minus(22, HOURS))
+                        .status(BuildStatus.COMPLETE)
+                        .buildProcessorId("incredible-bulk-1")
+                        .build(),
+                    FileStatus.builder()
+                        .fileId("f2")
+                        .firstRecord(100)
+                        .lastRecord(199)
+                        .buildStartTime(now.minus(2, HOURS))
+                        .buildCompleteTime(null)
+                        .status(BuildStatus.IN_PROGRESS)
+                        .buildProcessorId("incredible-bulk-2")
+                        .build(),
+                    FileStatus.builder()
+                        .fileId("f3")
+                        .firstRecord(200)
+                        .lastRecord(299)
+                        .buildStartTime(null)
+                        .buildCompleteTime(null)
+                        .status(BuildStatus.NOT_STARTED)
+                        .buildProcessorId(null)
+                        .build()))
             .build());
   }
 

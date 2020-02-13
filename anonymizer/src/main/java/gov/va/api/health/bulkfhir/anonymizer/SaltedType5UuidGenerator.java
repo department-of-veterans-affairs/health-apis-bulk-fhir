@@ -4,9 +4,7 @@ import com.fasterxml.uuid.Generators;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.extern.slf4j.Slf4j;
 
-@Slf4j
 @Builder
 @AllArgsConstructor
 public class SaltedType5UuidGenerator implements AnonymizedIdGenerator {

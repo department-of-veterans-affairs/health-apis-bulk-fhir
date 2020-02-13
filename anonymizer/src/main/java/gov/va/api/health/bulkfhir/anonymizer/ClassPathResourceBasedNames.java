@@ -8,7 +8,6 @@ import java.util.Collections;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.SneakyThrows;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * Using a class path resource as data, we provide a static set of names for the synthesis process
@@ -23,7 +22,6 @@ import lombok.extern.slf4j.Slf4j;
  * information in the wrapping, long -> int, but it does not matter in this case. We are only aiming
  * for repeatable access on the list with constant results.
  */
-@Slf4j
 @AllArgsConstructor
 public class ClassPathResourceBasedNames implements Names {
 
@@ -48,7 +46,7 @@ public class ClassPathResourceBasedNames implements Names {
                     .getClassLoader()
                     .getResourceAsStream(sharedNamesClassPathResource),
                 StandardCharsets.UTF_8));
-    reader.lines().forEach(line -> list.add(line.split(",")[0]));
+    reader.lines().forEach(line -> list.add(line.split(",", -1)[0]));
     reader.close();
     return Collections.unmodifiableList(list);
   }
@@ -56,6 +54,6 @@ public class ClassPathResourceBasedNames implements Names {
   /** Safely handle wrapping any value into an array index. */
   @Override
   public String getName(long index) {
-    return names.get((int) (index % (names.size())));
+    return names.get((int) (index % names.size()));
   }
 }
