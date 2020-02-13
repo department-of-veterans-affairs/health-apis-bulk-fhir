@@ -10,7 +10,6 @@ import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 import lombok.Builder;
-import lombok.Singular;
 import lombok.Value;
 
 @Value
@@ -29,7 +28,7 @@ public class PublicationStatus {
 
   @NotNull BuildStatus overallStatus;
 
-  @Singular @NotEmpty List<FileStatus> files;
+  @NotEmpty List<FileStatus> files;
 
   @Value
   @Builder

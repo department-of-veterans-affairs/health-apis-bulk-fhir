@@ -6,6 +6,8 @@ import gov.va.api.health.bulkfhir.api.internal.PublicationStatus.FileStatus;
 import gov.va.api.health.bulkfhir.api.internal.PublicationStatus.PublicationStatusBuilder;
 import gov.va.api.health.bulkfhir.service.status.StatusEntity;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 
@@ -17,6 +19,7 @@ public class DefaultPublicationStatusTransformer implements PublicationStatusTra
     log.info("{}", statusEntities);
     Counter counter = new Counter();
     PublicationStatusBuilder publication = PublicationStatus.builder();
+    List<FileStatus> fileStatuses = new ArrayList<>();
     for (var entity : statusEntities) {
       if (counter.total() == 0) {
         publication
@@ -26,8 +29,9 @@ public class DefaultPublicationStatusTransformer implements PublicationStatusTra
       }
       FileStatus fileStatus = toStatus(entity);
       counter.add(fileStatus.status());
-      publication.file(fileStatus);
+      fileStatuses.add(fileStatus);
     }
+    publication.files(fileStatuses);
     return publication.overallStatus(counter.overallStatus()).build();
   }
 

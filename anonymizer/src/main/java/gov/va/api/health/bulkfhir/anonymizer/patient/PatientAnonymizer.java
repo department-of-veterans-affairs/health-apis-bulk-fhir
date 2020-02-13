@@ -5,9 +5,7 @@ import gov.va.api.health.bulkfhir.anonymizer.AnonymizedIdGenerator;
 import gov.va.api.health.bulkfhir.anonymizer.SyntheticData;
 import java.util.function.Function;
 import lombok.Builder;
-import lombok.extern.slf4j.Slf4j;
 
-@Slf4j
 @Builder
 public class PatientAnonymizer implements Function<Patient, Patient> {
 

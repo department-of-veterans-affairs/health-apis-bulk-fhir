@@ -3,6 +3,7 @@ package gov.va.api.health.bulkfhir.anonymizer;
 import gov.va.api.health.dstu2.api.datatypes.HumanName;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
+import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeParseException;
 import java.util.List;
@@ -38,7 +39,7 @@ public class ResourceBasedSyntheticData implements SyntheticData {
     LocalDate date;
     LocalDate now;
     try {
-      now = LocalDate.now();
+      now = LocalDate.now(ZoneId.of("Etc/UTC"));
       date = LocalDate.parse(rawDate);
       if (now.getYear() - date.getYear() > TRUNCATION_AGE) {
         date = date.withYear(now.getYear() - TRUNCATION_AGE);
@@ -60,7 +61,7 @@ public class ResourceBasedSyntheticData implements SyntheticData {
     OffsetDateTime date;
     OffsetDateTime now;
     try {
-      now = OffsetDateTime.now();
+      now = OffsetDateTime.now(ZoneId.of("Etc/UTC"));
       date = OffsetDateTime.parse(rawDateTime);
       if (now.getYear() - date.getYear() > TRUNCATION_AGE) {
         date = date.withYear(now.getYear() - TRUNCATION_AGE);

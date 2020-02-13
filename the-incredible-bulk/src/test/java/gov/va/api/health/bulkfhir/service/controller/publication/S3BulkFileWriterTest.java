@@ -5,7 +5,7 @@ import gov.va.api.health.bulkfhir.service.filebuilder.FileClaim;
 import org.assertj.core.util.Lists;
 import org.junit.Test;
 import software.amazon.awssdk.core.exception.SdkClientException;
-import software.amazon.awssdk.services.s3.model.NoSuchBucketException;
+import software.amazon.awssdk.services.s3.model.S3Exception;
 
 public class S3BulkFileWriterTest {
 
@@ -16,7 +16,7 @@ public class S3BulkFileWriterTest {
     fileWriter.setS3Bucket("fake-test-bucket");
     try {
       fileWriter.writeFile(claim(), Lists.newArrayList("HELLO").stream());
-    } catch (SdkClientException | NoSuchBucketException e) {
+    } catch (SdkClientException | S3Exception e) {
       // Eat it - the test bucket shouldn't exist
     }
   }

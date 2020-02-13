@@ -17,7 +17,7 @@ import gov.va.api.health.bulkfhir.service.status.StatusEntity;
 import gov.va.api.health.bulkfhir.service.status.StatusRepository;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -110,7 +110,7 @@ class InternalPublicationController {
     var fileName = "Patient-%04d";
     int page = 1;
     int remaining = resources.count();
-    var entities = new LinkedList<StatusEntity>();
+    var entities = new ArrayList<StatusEntity>();
     while (remaining > 0) {
       int thisFileSize = Math.min(request.recordsPerFile(), remaining);
       entities.add(

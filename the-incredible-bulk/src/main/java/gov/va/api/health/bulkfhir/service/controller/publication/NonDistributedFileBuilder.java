@@ -22,6 +22,7 @@ public class NonDistributedFileBuilder implements FileBuilder {
   private final FileClaimant claimant;
   private final FileBuildWorker worker;
 
+  @SuppressWarnings("FutureReturnValueIgnored")
   @Override
   public FileBuildResponse buildFile(FileBuildRequest request) {
     var claim = claim(request);
