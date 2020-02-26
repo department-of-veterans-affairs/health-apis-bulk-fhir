@@ -111,4 +111,31 @@ Notes
 
 
 # Short Comings, Gotchas, and Potential Problems
-- The Bulk FHIR specification defines STU3 structures, this PoC 
+- Implementation Guide (IG) has been updated since this PoC.
+- OAuth is not currently supported. Simple API key authentication method is used. The API key 
+  provides an "all or nothing" approach. We have no mechanism for allowing access to different
+  resources for different users.
+- The IG assumes bulk data files are generated _on demand_. Our data set is very large and not
+  well suited for on demand create. Instead data sets are created monthly, taking many days for 
+  just Patient alone. Files are built in batches to avoid overloading the servers and database.
+- Data sets are very large, e.g. Observation has _billions_ of records. Transferring this data
+  to clients will be time consuming. Per the specification, records are included in multiple files.
+  We must find the balance in files that are very large and having a very large number of files.
+  Even with large files, there will still be a great number of them. This 
+- The Bulk FHIR specification defines STU3 structures, this PoC returns DSTU2 flavored structures.
+- Only Patient resource is implemented. Support for Observation, Condition, Procedure, etc. is absent.
+- The current solution periodically builds comprehensive publications monthly. There is significant
+  cost (in time) to produce the data set. There is no support for incremental updates, which could 
+  be problematic for users that wish to stay as current.
+- We do not support optional endpoints or parameters for the following
+  - groups or group level data export
+  - system level export , e.g. `services/fhir/v0/stu3$export`
+  - query parameters:
+    - `_outputFormat` (we only support output application/fhir+ndjson)
+    - `_since` (time based filtering)
+    - `_type` (We only support Patient)
+    - no experimental parameters, e.g. type filters
+  - delete operations
+  - new optional `Expires` header is not supported but should be
+
+   
