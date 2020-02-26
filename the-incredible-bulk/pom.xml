@@ -4,16 +4,16 @@
   <parent>
     <groupId>gov.va.api.health</groupId>
     <artifactId>service-starter</artifactId>
-    <version>6.0.0</version>
+    <version>6.0.2</version>
     <relativePath/>
   </parent>
   <artifactId>the-incredible-bulk</artifactId>
-  <version>1.0.40-SNAPSHOT</version>
+  <version>1.0.40</version>
   <packaging>jar</packaging>
   <properties>
     <mssql-jdbc.version>7.4.1.jre12</mssql-jdbc.version>
     <aws.version>2.10.12</aws.version>
-    <argonaut.version>2.0.31</argonaut.version>
+    <argonaut.version>2.0.32</argonaut.version>
     <health-apis-ids.version>2.1.10</health-apis-ids.version>
   </properties>
   <dependencyManagement>

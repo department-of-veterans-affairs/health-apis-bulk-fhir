@@ -4,10 +4,10 @@
   <parent>
     <groupId>gov.va.api.health</groupId>
     <artifactId>api-starter</artifactId>
-    <version>6.0.0</version>
+    <version>6.0.2</version>
     <relativePath/>
   </parent>
   <artifactId>bulk-fhir-api</artifactId>
-  <version>1.0.40-SNAPSHOT</version>
+  <version>1.0.40</version>
   <packaging>jar</packaging>
 </project>
