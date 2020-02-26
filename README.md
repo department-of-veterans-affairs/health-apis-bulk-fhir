@@ -108,3 +108,7 @@ Notes
 - Specific files can be built using `POST /internal/publication/{id}/file/{fileId}`
 - Publications can be listed using `GET /internal/publication`
 - Status can be queried using `GET /internal/publication/{id}`
+
+
+# Short Comings, Gotchas, and Potential Problems
+- The Bulk FHIR specification defines STU3 structures, this PoC 
